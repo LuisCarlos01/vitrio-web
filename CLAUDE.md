@@ -16,7 +16,10 @@ UI. Toda cor deve referenciar um token do design system definido em
 `src/app/globals.css` (`--primary`, `--secondary`, `--muted`, etc., consumidos
 via `bg-primary`, `text-foreground` etc.). Se a cor que você precisa não existe
 como token ainda, pare e proponha adicionar o token — não invente um valor solto
-no meio do componente.
+no meio do componente. Regra vale pra código novo ou alterado a partir de agora;
+não é retroativa — `src/app/page.tsx` ainda tem hex literais do boilerplate do
+`create-next-app` (página nunca foi tocada pelo produto), migrar fica pra quando
+essa página for reescrita de fato, não motivo pra uma limpeza avulsa agora.
 
 ## Agent skills
 

@@ -43,9 +43,9 @@ Hoje já existe suporte parcial a isso no código: `primaryColorHex` e
 
 ### Cor do catálogo da revendedora: híbrido
 
-O formulário de cor do catálogo oferece paletas curadas como padrão, com opção
-avançada de hex customizado — em vez de só hex livre (status quo) ou só
-paletas fechadas.
+O formulário de cor do catálogo deverá oferecer paletas curadas como padrão,
+com opção avançada de hex customizado — em vez de só hex livre (status quo) ou
+só paletas fechadas.
 
 Paletas curadas iniciais (6 estilos genéricos, não por nicho — nicho engessa e
 exige manutenção a cada segmento novo):
@@ -62,9 +62,9 @@ exige manutenção a cada segmento novo):
 Nenhuma reaproveita o accent do próprio Vitrio (ciano petróleo), para não
 confundir "cor da plataforma" com "cor da loja".
 
-O formulário emite um aviso não-bloqueante de contraste (WCAG AA) quando a
-combinação escolhida (curada ou custom) fica difícil de ler — não bloqueia o
-salvamento.
+O formulário deverá emitir um aviso não-bloqueante de contraste (WCAG AA)
+quando a combinação escolhida (curada ou custom) ficar difícil de ler — sem
+bloquear o salvamento.
 
 ### Marca do Vitrio (dashboard/produto)
 
@@ -103,7 +103,7 @@ Variantes produzidas:
   isolada para avatar/contextos pequenos), não só um fallback técnico.
 - `src/app/favicon.ico`, `src/app/icon.png`, `src/app/apple-icon.png` —
   gerados a partir da silhueta flat, nos file conventions que o Next.js
-  reconhece automaticamente (`node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/01-metadata/app-icons.md`).
+  reconhece automaticamente (ver [App Icons](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/app-icons)).
   A arte com bisel/gradiente não é legível em 16px (tamanho real de aba de
   navegador); a silhueta flat resolve isso mantendo a mesma marca.
 
