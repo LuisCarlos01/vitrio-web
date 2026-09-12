@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CatalogForm } from '@/features/dashboard/components/catalog-form';
 import { WhatsappForm } from '@/features/dashboard/components/whatsapp-form';
 
@@ -8,6 +9,9 @@ export default function DashboardPage() {
       <CatalogForm />
       <h2>WhatsApp</h2>
       <WhatsappForm />
+      <nav>
+        <Link href="/categories">Categorias</Link>
+      </nav>
     </main>
   );
 }
