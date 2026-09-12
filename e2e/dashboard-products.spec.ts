@@ -5,6 +5,15 @@ function uniqueEmail() {
   return `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }
 
+// Faz upload de imagem de verdade (POST /assets), que a vitrio-api sobe pro S3
+// real. No CI as credenciais são fake (só existem pra o S3Client inicializar,
+// ver .github/workflows/ci.yml), então o upload falha — sem LocalStack ou um
+// bucket de teste dedicado, este teste só roda de forma confiável localmente.
+test.skip(
+  !!process.env.CI,
+  'requires real (or LocalStack) S3 credentials, unavailable in CI today',
+);
+
 test('a reseller can create a product, edit its stock/visibility, and delete it', async ({
   page,
 }) => {
