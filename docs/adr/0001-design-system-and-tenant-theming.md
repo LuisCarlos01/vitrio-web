@@ -72,6 +72,11 @@ salvamento.
   - Light: `#0E7490` (ciano petróleo)
   - Dark: `#22D3EE` (mesma família, mais claro/saturado para contraste em
     fundo escuro)
+- `--background` deixa de ser branco puro (`oklch(1 0 0)`, boilerplate do
+  shadcn) e passa a ser um cinza claro (`#F4F3F2` / equivalente em oklch) no
+  light mode. Cards/inputs (`--card`) continuam num tom mais claro que o
+  background para manter contraste de camada — o app não deve parecer "tudo
+  branco".
 - Tipografia: Geist em toda a aplicação — sem fonte de display separada.
 - Dark mode é roadmap real (não boilerplate morto — antes deste ADR, o bloco
   `.dark` em `globals.css` existia mas nada no código o ativava). Os tokens de
