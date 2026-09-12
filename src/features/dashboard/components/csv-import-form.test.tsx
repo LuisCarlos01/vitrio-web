@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { API_BASE_URL } from '@/lib/api/config';
@@ -176,5 +176,34 @@ describe('CsvImportForm', () => {
     );
 
     expect(await screen.findByText(/muitas tentativas/i)).toBeInTheDocument();
+  });
+
+  it('disables picking a new file while a preview is in flight, so confirm can never target a different file', async () => {
+    server.use(
+      http.post(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/import/preview`,
+        async () => {
+          await delay(30);
+          return HttpResponse.json({ rows: [] });
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderCsvImportForm();
+
+    const file = new File(['a'], 'a.csv', { type: 'text/csv' });
+    const input = screen.getByLabelText(/arquivo csv/i);
+    await user.upload(input, file);
+    await user.click(screen.getByRole('button', { name: /pré-visualizar/i }));
+
+    expect(input).toBeDisabled();
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /pré-visualizar/i }),
+      ).toBeEnabled(),
+    );
+    expect(input).toBeEnabled();
   });
 });

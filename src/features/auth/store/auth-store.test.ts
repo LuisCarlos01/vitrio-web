@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { queryClient } from '@/lib/query-client';
 import { useAuthStore } from './auth-store';
 
 const STORAGE_KEY = 'vitrio-auth';
@@ -77,5 +78,23 @@ describe('useAuthStore', () => {
     useAuthStore.getState().clearSession();
 
     expect(readCookie('has-session')).toBeUndefined();
+  });
+
+  it('clears the shared query cache on setSession so a new account never sees stale data', () => {
+    queryClient.setQueryData(['catalog'], { id: 'previous-account-catalog' });
+
+    useAuthStore
+      .getState()
+      .setSession({ accessToken: 'access-123', refreshToken: 'refresh-456' });
+
+    expect(queryClient.getQueryData(['catalog'])).toBeUndefined();
+  });
+
+  it('clears the shared query cache on clearSession so logging out wipes cached data', () => {
+    queryClient.setQueryData(['catalog'], { id: 'some-catalog' });
+
+    useAuthStore.getState().clearSession();
+
+    expect(queryClient.getQueryData(['catalog'])).toBeUndefined();
   });
 });

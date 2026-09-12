@@ -33,6 +33,7 @@ export function CsvImportForm({ catalogId }: { catalogId: string }) {
         id="csv-file"
         type="file"
         accept=".csv,text/csv"
+        disabled={preview.isPending}
         onChange={(event) => {
           setFile(event.target.files?.[0] ?? null);
           setPreviewRows(null);

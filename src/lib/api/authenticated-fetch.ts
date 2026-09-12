@@ -6,6 +6,16 @@ export async function authenticatedFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    API_BASE_URL.startsWith('http://')
+  ) {
+    throw new Error(
+      'Refusing to send an authenticated request over plain HTTP in production. ' +
+        'NEXT_PUBLIC_API_URL must use https://.',
+    );
+  }
+
   const accessToken = useAuthStore.getState().accessToken;
   const isFormData = init.body instanceof FormData;
 
