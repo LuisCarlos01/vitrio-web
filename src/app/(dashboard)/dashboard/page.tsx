@@ -11,6 +11,7 @@ export default function DashboardPage() {
       <WhatsappForm />
       <nav>
         <Link href="/categories">Categorias</Link>
+        <Link href="/products">Produtos</Link>
       </nav>
     </main>
   );

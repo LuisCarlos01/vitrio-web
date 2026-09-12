@@ -7,11 +7,12 @@ export async function authenticatedFetch(
   init: RequestInit = {},
 ): Promise<Response> {
   const accessToken = useAuthStore.getState().accessToken;
+  const isFormData = init.body instanceof FormData;
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...init.headers,
     },

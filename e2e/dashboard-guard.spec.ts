@@ -20,6 +20,9 @@ test.describe('dashboard route guard', () => {
     await page.getByRole('button', { name: /criar conta/i }).click();
     await page.waitForURL('/dashboard');
 
+    await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+    await page.getByRole('button', { name: /criar loja/i }).click();
+
     await page.goto('/products');
 
     await expect(page).toHaveURL('/products');
