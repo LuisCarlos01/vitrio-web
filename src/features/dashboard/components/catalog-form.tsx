@@ -107,7 +107,7 @@ export function CatalogForm() {
         <p>Não foi possível salvar. Tente novamente.</p>
       )}
       <Button type="submit" disabled={updateCatalog.isPending}>
-        Salvar
+        Salvar dados da loja
       </Button>
     </form>
   );
