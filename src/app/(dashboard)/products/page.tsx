@@ -1,5 +1,6 @@
 'use client';
 
+import { CsvImportForm } from '@/features/dashboard/components/csv-import-form';
 import { ProductList } from '@/features/dashboard/components/product-list';
 import { useCatalog } from '@/features/dashboard/hooks/use-catalog';
 
@@ -18,6 +19,8 @@ export default function ProductsPage() {
     <main>
       <h1>Produtos</h1>
       <ProductList catalogId={catalog.id} />
+      <h2>Importar via CSV</h2>
+      <CsvImportForm catalogId={catalog.id} />
     </main>
   );
 }
