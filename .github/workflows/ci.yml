@@ -36,7 +36,15 @@ jobs:
       - name: Start vitrio-api (docker compose)
         working-directory: vitrio-api
         run: |
-          echo "VITRIO_CORS_ALLOWED_ORIGINS=http://localhost:3000" >> .env
+          {
+            echo "VITRIO_CORS_ALLOWED_ORIGINS=http://localhost:3000"
+            # S3Client é instanciado no boot (spec 003) e exige região não-vazia,
+            # mesmo sem nenhum teste de auth chamando upload de asset de verdade.
+            echo "AWS_S3_REGION=us-east-1"
+            echo "AWS_S3_ACCESS_KEY_ID=test"
+            echo "AWS_S3_SECRET_ACCESS_KEY=test"
+            echo "AWS_S3_BUCKET_NAME=vitrio-web-ci"
+          } >> .env
           docker compose up -d --build
           for i in $(seq 1 90); do
             curl -sf http://localhost:8080/v3/api-docs > /dev/null && exit 0
