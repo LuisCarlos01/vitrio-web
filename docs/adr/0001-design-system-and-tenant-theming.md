@@ -102,6 +102,35 @@ Variantes produzidas:
   A arte com bisel/gradiente não é legível em 16px (tamanho real de aba de
   navegador); a silhueta flat resolve isso mantendo a mesma marca.
 
+### Navegação do dashboard (desktop e mobile)
+
+Nenhuma sidebar/navegação existe no código ainda (`src/components/ui/` só tem
+`button`, `dialog`, `input`, `label`; não há `layout.tsx` com nav para o grupo
+`(dashboard)`). As decisões abaixo valem para quando essa navegação for
+implementada:
+
+- **Sem o bloco `Sidebar` do shadcn** — decisão explícita de não usar,
+  mesmo sendo a opção "de fábrica" do stack atual.
+- **Desktop/tablet**: sidebar lateral colapsável. Animação de
+  colapsar/expandir via CSS `transition` com easing tipo mola
+  (`cubic-bezier(0.34, 1.56, 0.64, 1)`) — sem lib de animação nova
+  (Framer Motion/Motion One), a curva sozinha já dá o efeito desejado.
+  Seleção de item ativo: crossfade simples de cor/fundo por item, sem
+  elemento compartilhado deslizando entre posições.
+- **Mobile**: bottom tab bar (não drawer/off-canvas) — poucos itens (hoje 4:
+  Catálogo, Produtos, Loja, WhatsApp), então cabe bem fixo embaixo. O item
+  ativo é um círculo na cor accent que "pousa" sobre a barra (não um recorte
+  boolean real na barra — essa variante foi tentada e descartada por
+  fragilidade/bugs de alinhamento). Movimento via CSS `transition` na mesma
+  curva de mola do desktop. Não precisa de lib de gestos (Vaul, etc.) até
+  existir um caso de uso real de swipe/drag.
+- **Tema claro/escuro**: barra e sidebar trocam de fundo (claro/escuro) e cor
+  dos ícones inativos junto com o tema do app — mesma lógica de
+  `logo-preta`/`logo-branca`. A cor accent do círculo/item ativo não muda
+  entre temas (já tem contraste suficiente nos dois fundos).
+- Breakpoint entre os dois modos (`md:` do Tailwind, sem componente
+  duplicado) — a treliça de itens é a mesma, só a apresentação muda.
+
 ## Consequências
 
 - Regra correlata em `CLAUDE.md`: nenhuma cor pode ser hardcoded em
