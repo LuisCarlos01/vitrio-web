@@ -38,11 +38,12 @@ jobs:
         run: |
           echo "VITRIO_CORS_ALLOWED_ORIGINS=http://localhost:3000" >> .env
           docker compose up -d --build
-          for i in $(seq 1 60); do
+          for i in $(seq 1 90); do
             curl -sf http://localhost:8080/v3/api-docs > /dev/null && exit 0
-            sleep 2
+            sleep 3
           done
           echo "vitrio-api did not become healthy in time" >&2
+          docker compose logs
           exit 1
 
       - uses: pnpm/action-setup@v4
@@ -58,6 +59,11 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - working-directory: vitrio-web
         run: pnpm run test:e2e
+
+      - name: Dump vitrio-api logs on failure
+        if: failure()
+        working-directory: vitrio-api
+        run: docker compose logs
 
       - name: Stop vitrio-api
         if: always()
