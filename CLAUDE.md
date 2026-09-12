@@ -1,5 +1,14 @@
 @AGENTS.md
 
+## Comunicação
+
+Ao explicar decisões técnicas, planos, testes ou arquitetura neste projeto: use os
+termos técnicos corretos (não simplifique o vocabulário), mas sempre acompanhe cada
+termo/ponto de uma explicação em linguagem natural do que ele significa na prática —
+não assuma que o termo por si só é suficiente. Ex.: ao listar seams de um plano de TDD,
+não só nomear cada um, mas dizer em português simples o que aquele teste está
+verificando e por quê.
+
 ## Agent skills
 
 ### Issue tracker
