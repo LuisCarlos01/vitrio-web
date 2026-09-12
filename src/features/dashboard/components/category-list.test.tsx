@@ -158,4 +158,20 @@ describe('CategoryList', () => {
       expect(screen.queryByText('Perfumes')).not.toBeInTheDocument(),
     );
   });
+
+  it('rejects a category name made only of whitespace', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json([]),
+      ),
+    );
+    const user = userEvent.setup();
+    renderCategoryList();
+
+    await screen.findByText(/nenhuma categoria cadastrada/i);
+    await user.type(screen.getByLabelText(/nome da categoria/i), '   ');
+    await user.click(screen.getByRole('button', { name: /adicionar/i }));
+
+    expect(await screen.findByText(/nome é obrigatório/i)).toBeInTheDocument();
+  });
 });

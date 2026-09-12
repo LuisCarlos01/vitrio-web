@@ -21,14 +21,19 @@ import { useDeleteCategory } from '../hooks/use-delete-category';
 import { useUpdateCategory } from '../hooks/use-update-category';
 
 const categoryNameSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
+  name: z.string().trim().min(1, 'Nome é obrigatório'),
 });
 
 type CategoryNameValues = z.infer<typeof categoryNameSchema>;
 
 function CreateCategoryForm({ catalogId }: { catalogId: string }) {
   const createCategory = useCreateCategory();
-  const { register, handleSubmit, reset } = useForm<CategoryNameValues>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CategoryNameValues>({
     resolver: zodResolver(categoryNameSchema),
   });
 
@@ -43,6 +48,7 @@ function CreateCategoryForm({ catalogId }: { catalogId: string }) {
     >
       <Label htmlFor="new-category-name">Nome da categoria</Label>
       <Input id="new-category-name" {...register('name')} />
+      {errors.name && <p role="alert">{errors.name.message}</p>}
       <Button type="submit" disabled={createCategory.isPending}>
         Adicionar
       </Button>
