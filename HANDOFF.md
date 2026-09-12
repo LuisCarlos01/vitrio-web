@@ -43,46 +43,42 @@ Fluxo: Access token (JWT, curto) + Refresh token (opaco, mais longo).
 
 Endpoints autenticados esperam `Authorization: Bearer <accessToken>`.
 
-### ⚠️ Pegadinha real: cookie do refresh token é `SameSite=Strict`
+### Cookie do refresh token: `SameSite=None` (corrigido em 2026-09-12)
 
 `login`/`register`/`refresh` também setam o refresh token num cookie `httpOnly`,
-`Secure`, **`SameSite=Strict`**, `Path=/api/v1/auth`
-(`vitrio-api/src/main/java/dev/vitrio/api/auth/RefreshTokenCookie.java`).
+`Secure`, `SameSite=None`, `Path=/api/v1/auth`
+(`vitrio-api/src/main/java/dev/vitrio/api/auth/RefreshTokenCookie.java`, commit
+`c0f29ce`). Originalmente era `SameSite=Strict`, o que quebrava silenciosamente o
+cookie em qualquer chamada cross-site (frontend e API em domínios diferentes) — já
+corrigido, o cookie chega normalmente com `credentials: 'include'`.
 
-`SameSite=Strict` só é enviado pelo navegador em requisições **same-site** (mesmo
-domínio registrável). Isso funciona sem esforço se `vitrio-web` e a API algum dia
-morarem sob o mesmo domínio-pai (ex.: `app.vitrio.com` chamando `api.vitrio.com`) —
-mas com a API em `sslip.io` e o frontend em qualquer domínio diferente (Vercel,
-Netlify, domínio próprio não relacionado), **o cookie nunca chega no navegador em
-requisição cross-site**, mesmo com `credentials: 'include'`.
+Mesmo assim, **prefira depender do `refreshToken` do corpo da resposta**
+(`localStorage`/estado da aplicação) em vez do cookie: é mais simples de debugar no
+frontend e não depende de nenhuma configuração de cookie do navegador. O cookie
+continua existindo como mecanismo alternativo (`POST /api/v1/auth/refresh` aceita os
+dois — cookie tem prioridade sobre o corpo quando os dois vêm preenchidos), mas o
+`vitrio-web` não precisa se apoiar nele.
 
-Na prática, enquanto os dois não estiverem sob o mesmo domínio-pai: **trate o cookie
-como bônus/no-op e dependa do `refreshToken` que já vem no corpo da resposta**
-(`localStorage`/estado da aplicação) — mande-o explicitamente no corpo de
-`POST /api/v1/auth/refresh` (`{ "refreshToken": "..." }"`). O endpoint aceita os dois
-caminhos; o cookie só tem prioridade quando presente (não vai estar).
+Trade-off aceito na correção: `SameSite=None` reabre uma CSRF de baixo impacto em
+`/refresh`/`/logout` (uma página maliciosa pode forçar rotação/revogação do token da
+vítima), mitigada pela allowlist de origem do CORS (nunca wildcard) — sem
+exfiltração de token possível. Ver Javadoc de `SecurityConfig.java` na API.
 
-### ⚠️ Bug real na config de CORS: só GET/POST liberados
+### CORS métodos: `PATCH`/`PUT`/`DELETE` liberados (corrigido em 2026-09-12)
 
-`SecurityConfig.corsConfigurationSource()` define
-`configuration.setAllowedMethods(List.of("GET", "POST"))` — mas a API tem endpoints
-`PATCH`/`PUT`/`DELETE` de verdade (editar produto, editar categoria, deletar produto,
-configurar WhatsApp da loja, etc.). **Enquanto isso não for corrigido no `vitrio-api`,
-qualquer chamada `PATCH`/`PUT`/`DELETE` feita pelo navegador a partir de uma origem
-diferente da API vai falhar no preflight de CORS** (erro visível só no console do
-navegador, a chamada nem chega no backend).
-
-Antes de implementar telas de edição/exclusão no `vitrio-web`, ou:
-1. corrigir `SecurityConfig.java` no `vitrio-api` pra incluir `PATCH`, `PUT`, `DELETE`
-   em `allowedMethods`, ou
-2. confirmar que isso já foi corrigido (checar o arquivo direto, este handoff pode
-   ficar desatualizado).
+`SecurityConfig.corsConfigurationSource()` só liberava `GET`/`POST` em
+`allowedMethods`, apesar da API ter endpoints `PATCH`/`PUT`/`DELETE` reais (editar
+produto, editar categoria, deletar produto, configurar WhatsApp da loja). Corrigido
+no commit `0764c6c` — os 5 verbos usados por rotas reais agora estão liberados, com
+teste de regressão cobrindo os três que faltavam. Telas de edição/exclusão podem ser
+implementadas normalmente.
 
 ### CORS — origem precisa ser configurada
 
 `VITRIO_CORS_ALLOWED_ORIGINS` (env var da API) está **vazia hoje** — nenhuma origem
 liberada ainda. Assim que o `vitrio-web` tiver uma URL (mesmo de preview/staging),
 atualizar:
+
 - o secret `VITRIO_CORS_ALLOWED_ORIGINS` no GitHub Actions do repo `vitrio-api`
   (o `deploy.yml` reescreve o `.env` da instância a partir dos secrets a cada deploy —
   não precisa mexer na instância na mão);
@@ -103,25 +99,25 @@ Todo endpoint sob `/api/v1/**` exige `Authorization: Bearer` **exceto**:
 
 ## Endpoints (visão geral — shapes exatos no OpenAPI)
 
-| Método | Path | Autenticado | Observação |
-|---|---|---|---|
-| POST | `/api/v1/auth/register` | não | |
-| POST | `/api/v1/auth/login` | não | |
-| POST | `/api/v1/auth/refresh` | não | |
-| POST | `/api/v1/auth/logout` | sim | |
-| GET/POST | `/api/v1/catalogs` | sim | lista/cria catálogo(s) da conta |
-| GET/PATCH | `/api/v1/catalogs/{id}` | sim | dados/personalização da loja |
-| PUT | `/api/v1/catalogs/{id}/whatsapp` | sim | configura número |
-| POST | `/api/v1/catalogs/{id}/whatsapp/verify` | sim | fluxo de verificação |
-| POST | `/api/v1/catalogs/{catalogId}/assets` | sim | upload de imagem, `multipart/form-data`, campo `file`, limite **11MB** (server proxya pro S3 — não é upload direto do navegador pro storage, ao contrário do que o `ideia.md` do projeto especulava) |
-| GET/POST | `/api/v1/catalogs/{catalogId}/categories` | sim | |
-| PATCH/DELETE | `/api/v1/catalogs/{catalogId}/categories/{id}` | sim | |
-| GET/POST | `/api/v1/catalogs/{catalogId}/products` | sim | |
-| GET/PATCH/DELETE | `/api/v1/catalogs/{catalogId}/products/{id}` | sim | |
-| POST | `/api/v1/catalogs/{catalogId}/products/import/preview` | sim | **CSV**, ver seção abaixo |
-| POST | `/api/v1/catalogs/{catalogId}/products/import/confirm` | sim | rate-limit: 10/hora por conta |
-| GET | `/api/v1/public/catalogs/{slug}` | não | vitrine pública — é isso que o cliente final vê |
-| GET | `/api/v1/users` | sim, `ADMIN` | provavelmente fora de escopo do `vitrio-web` |
+| Método           | Path                                                   | Autenticado  | Observação                                                                                                                                                                                           |
+| ---------------- | ------------------------------------------------------ | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST             | `/api/v1/auth/register`                                | não          |                                                                                                                                                                                                      |
+| POST             | `/api/v1/auth/login`                                   | não          |                                                                                                                                                                                                      |
+| POST             | `/api/v1/auth/refresh`                                 | não          |                                                                                                                                                                                                      |
+| POST             | `/api/v1/auth/logout`                                  | sim          |                                                                                                                                                                                                      |
+| GET/POST         | `/api/v1/catalogs`                                     | sim          | lista/cria catálogo(s) da conta                                                                                                                                                                      |
+| GET/PATCH        | `/api/v1/catalogs/{id}`                                | sim          | dados/personalização da loja                                                                                                                                                                         |
+| PUT              | `/api/v1/catalogs/{id}/whatsapp`                       | sim          | configura número                                                                                                                                                                                     |
+| POST             | `/api/v1/catalogs/{id}/whatsapp/verify`                | sim          | fluxo de verificação                                                                                                                                                                                 |
+| POST             | `/api/v1/catalogs/{catalogId}/assets`                  | sim          | upload de imagem, `multipart/form-data`, campo `file`, limite **11MB** (server proxya pro S3 — não é upload direto do navegador pro storage, ao contrário do que o `ideia.md` do projeto especulava) |
+| GET/POST         | `/api/v1/catalogs/{catalogId}/categories`              | sim          |                                                                                                                                                                                                      |
+| PATCH/DELETE     | `/api/v1/catalogs/{catalogId}/categories/{id}`         | sim          |                                                                                                                                                                                                      |
+| GET/POST         | `/api/v1/catalogs/{catalogId}/products`                | sim          |                                                                                                                                                                                                      |
+| GET/PATCH/DELETE | `/api/v1/catalogs/{catalogId}/products/{id}`           | sim          |                                                                                                                                                                                                      |
+| POST             | `/api/v1/catalogs/{catalogId}/products/import/preview` | sim          | **CSV**, ver seção abaixo                                                                                                                                                                            |
+| POST             | `/api/v1/catalogs/{catalogId}/products/import/confirm` | sim          | rate-limit: 10/hora por conta                                                                                                                                                                        |
+| GET              | `/api/v1/public/catalogs/{slug}`                       | não          | vitrine pública — é isso que o cliente final vê                                                                                                                                                      |
+| GET              | `/api/v1/users`                                        | sim, `ADMIN` | provavelmente fora de escopo do `vitrio-web`                                                                                                                                                         |
 
 ## ⚠️ Divergência real: import é CSV, não PDF
 
