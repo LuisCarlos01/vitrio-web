@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import type { PublicProduct } from '@/lib/api/adapters/public-catalog';
+import { QuantityStepper } from '@/features/cart/components/quantity-stepper';
 
 function isOutOfStock(product: PublicProduct): boolean {
   return product.quantityAvailable === 0 || !product.isOrderable;
@@ -22,17 +26,63 @@ function ProductImage({ product }: { product: PublicProduct }) {
   return <img src={product.imageUrl} alt={product.name} />;
 }
 
-export function ProductGrid({ products }: { products: PublicProduct[] }) {
+type ProductCardProps = {
+  product: PublicProduct;
+  onAddToCart: (productId: string, quantity: number) => void;
+  onOpenDetail: (product: PublicProduct) => void;
+};
+
+function ProductCard({ product, onAddToCart, onOpenDetail }: ProductCardProps) {
+  const [quantity, setQuantity] = useState(1);
+  const outOfStock = isOutOfStock(product);
+
+  return (
+    <li>
+      <ProductImage product={product} />
+      {outOfStock && <span>Esgotado</span>}
+      <button type="button" onClick={() => onOpenDetail(product)}>
+        {product.name}
+      </button>
+      {product.sku && <p>{product.sku}</p>}
+      {product.description && <p>{product.description}</p>}
+      <QuantityStepper
+        quantity={quantity}
+        onChange={setQuantity}
+        disabled={outOfStock}
+      />
+      {outOfStock ? (
+        <button type="button" disabled>
+          Indisponível
+        </button>
+      ) : (
+        <button type="button" onClick={() => onAddToCart(product.id, quantity)}>
+          Adicionar ao carrinho
+        </button>
+      )}
+    </li>
+  );
+}
+
+type ProductGridProps = {
+  products: PublicProduct[];
+  onAddToCart: (productId: string, quantity: number) => void;
+  onOpenDetail: (product: PublicProduct) => void;
+};
+
+export function ProductGrid({
+  products,
+  onAddToCart,
+  onOpenDetail,
+}: ProductGridProps) {
   return (
     <ul>
       {products.map((product) => (
-        <li key={product.id}>
-          <ProductImage product={product} />
-          {isOutOfStock(product) && <span>Esgotado</span>}
-          <p>{product.name}</p>
-          {product.sku && <p>{product.sku}</p>}
-          {product.description && <p>{product.description}</p>}
-        </li>
+        <ProductCard
+          key={product.id}
+          product={product}
+          onAddToCart={onAddToCart}
+          onOpenDetail={onOpenDetail}
+        />
       ))}
     </ul>
   );

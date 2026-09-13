@@ -1,19 +1,43 @@
 'use client';
 
 import { useState } from 'react';
-import type { PublicCatalog } from '@/lib/api/adapters/public-catalog';
+import type {
+  PublicCatalog,
+  PublicProduct,
+} from '@/lib/api/adapters/public-catalog';
+import { CartDrawer } from '@/features/cart/components/cart-drawer';
+import { ProductDetailModal } from '@/features/cart/components/product-detail-modal';
+import { useCartStore } from '@/features/cart/store/cart-store';
 import { CategoryFilter } from './category-filter';
 import { ProductGrid } from './product-grid';
 import { StorefrontHeader } from './storefront-header';
 
 export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [detailProduct, setDetailProduct] = useState<PublicProduct | null>(
+    null,
+  );
+  const addItem = useCartStore((state) => state.addItem);
 
   const visibleProducts = activeCategoryId
     ? catalog.products.filter(
         (product) => product.categoryId === activeCategoryId,
       )
     : catalog.products;
+
+  function handleAddToCart(productId: string, quantity: number) {
+    const product = catalog.products.find((item) => item.id === productId);
+    if (!product) return;
+    addItem(
+      { productId: product.id, name: product.name, imageUrl: product.imageUrl },
+      quantity,
+    );
+  }
+
+  const detailCategoryName =
+    catalog.categories.find(
+      (category) => category.id === detailProduct?.categoryId,
+    )?.name ?? null;
 
   return (
     <div
@@ -28,6 +52,7 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
         name={catalog.name}
         instagramHandle={catalog.instagramHandle}
       />
+      <CartDrawer whatsappNumber={catalog.whatsappNumber} />
       {catalog.products.length === 0 ? (
         <p>Esta loja ainda não tem produtos.</p>
       ) : (
@@ -37,9 +62,22 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
             activeCategoryId={activeCategoryId}
             onSelect={setActiveCategoryId}
           />
-          <ProductGrid products={visibleProducts} />
+          <ProductGrid
+            products={visibleProducts}
+            onAddToCart={handleAddToCart}
+            onOpenDetail={setDetailProduct}
+          />
         </>
       )}
+      <ProductDetailModal
+        product={detailProduct}
+        categoryName={detailCategoryName}
+        onClose={() => setDetailProduct(null)}
+        onAddToCart={(productId, quantity) => {
+          handleAddToCart(productId, quantity);
+          setDetailProduct(null);
+        }}
+      />
     </div>
   );
 }

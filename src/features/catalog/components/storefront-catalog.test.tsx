@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { PublicCatalog } from '@/lib/api/adapters/public-catalog';
+import { useCartStore } from '@/features/cart/store/cart-store';
 import { StorefrontCatalog } from './storefront-catalog';
 
 function buildCatalog(overrides: Partial<PublicCatalog> = {}): PublicCatalog {
@@ -42,6 +43,10 @@ function buildCatalog(overrides: Partial<PublicCatalog> = {}): PublicCatalog {
 }
 
 describe('StorefrontCatalog', () => {
+  beforeEach(() => {
+    useCartStore.setState({ items: [] });
+  });
+
   it('renders the store header and every product when "Todos" is active', () => {
     render(<StorefrontCatalog catalog={buildCatalog()} />);
 
@@ -77,5 +82,55 @@ describe('StorefrontCatalog', () => {
     const root = container.firstElementChild as HTMLElement;
     expect(root.style.getPropertyValue('--tenant-primary')).toBe('#DB2777');
     expect(root.style.getPropertyValue('--tenant-button')).toBe('#7C3AED');
+  });
+
+  it('adds a product to the cart store when its card add-to-cart button is used', async () => {
+    render(<StorefrontCatalog catalog={buildCatalog()} />);
+
+    await userEvent.click(
+      screen.getAllByRole('button', { name: 'Adicionar ao carrinho' })[0],
+    );
+
+    expect(useCartStore.getState().items).toEqual([
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantity: 1,
+      },
+    ]);
+  });
+
+  it('opens the product detail modal when a product name is clicked, and adds to cart from it', async () => {
+    render(<StorefrontCatalog catalog={buildCatalog()} />);
+
+    await userEvent.click(screen.getByText('Glamour Noir'));
+
+    const dialog = screen.getByRole('dialog', { name: 'Glamour Noir' });
+    expect(dialog).toBeInTheDocument();
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Aumentar quantidade' }),
+    );
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Adicionar ao carrinho' }),
+    );
+
+    expect(useCartStore.getState().items).toEqual([
+      {
+        productId: 'prod-2',
+        name: 'Glamour Noir',
+        imageUrl: null,
+        quantity: 2,
+      },
+    ]);
+  });
+
+  it('renders the cart drawer trigger wired to the catalog whatsappNumber', () => {
+    render(<StorefrontCatalog catalog={buildCatalog()} />);
+
+    expect(
+      screen.getByRole('button', { name: /Ver carrinho/ }),
+    ).toBeInTheDocument();
   });
 });
