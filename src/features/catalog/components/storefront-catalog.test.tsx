@@ -133,4 +133,36 @@ describe('StorefrontCatalog', () => {
       screen.getByRole('button', { name: /Ver carrinho/ }),
     ).toBeInTheDocument();
   });
+
+  it('renders a banner carousel slide with an image for each product that has one', () => {
+    render(
+      <StorefrontCatalog
+        catalog={buildCatalog({
+          products: [
+            {
+              id: 'prod-1',
+              name: 'Eggeo Blossom',
+              sku: null,
+              description: null,
+              imageUrl: 'https://cdn.example.com/eggeo.png',
+              categoryId: null,
+              quantityAvailable: 5,
+              isOrderable: true,
+            },
+          ],
+        })}
+      />,
+    );
+
+    const dots = screen.getAllByRole('button', { name: /Ir para o banner/ });
+    expect(dots).toHaveLength(1);
+  });
+
+  it('renders the WhatsApp floating button when the number is verified', () => {
+    render(<StorefrontCatalog catalog={buildCatalog()} />);
+
+    expect(
+      screen.getByRole('link', { name: /Falar no WhatsApp/ }),
+    ).toBeInTheDocument();
+  });
 });
