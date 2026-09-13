@@ -66,6 +66,12 @@ export const useCartStore = create<CartState>()(
           itemsBySlug: { ...state.itemsBySlug, [slug]: [] },
         })),
     }),
-    { name: 'vitrio-cart' },
+    {
+      name: 'vitrio-cart',
+      version: 1,
+      // v0 guardava um `items: CartItem[]` global (sem escopo por loja) —
+      // formato incompatível, não dá pra saber a que slug pertencia.
+      migrate: (): Pick<CartState, 'itemsBySlug'> => ({ itemsBySlug: {} }),
+    },
   ),
 );

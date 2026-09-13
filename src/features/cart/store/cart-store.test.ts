@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCartStore } from './cart-store';
 
 const STORAGE_KEY = 'vitrio-cart';
@@ -214,5 +214,29 @@ describe('useCartStore', () => {
         quantity: 2,
       },
     ]);
+  });
+
+  it('migrates a legacy (pre-slug) persisted cart to an empty itemsBySlug map instead of crashing', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          items: [
+            {
+              productId: 'old-1',
+              name: 'Produto antigo',
+              imageUrl: null,
+              quantity: 3,
+            },
+          ],
+        },
+        version: 0,
+      }),
+    );
+
+    vi.resetModules();
+    const { useCartStore: rehydratedStore } = await import('./cart-store');
+
+    expect(rehydratedStore.getState().itemsBySlug).toEqual({});
   });
 });
