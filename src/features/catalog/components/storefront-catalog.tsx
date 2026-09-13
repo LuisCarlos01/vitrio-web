@@ -63,6 +63,7 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
     >
       <StorefrontHeader
         name={catalog.name}
+        logoUrl={catalog.logoUrl}
         instagramHandle={catalog.instagramHandle}
       />
       <CartDrawer whatsappNumber={catalog.whatsappNumber} />

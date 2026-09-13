@@ -8,6 +8,7 @@ import { StorefrontCatalog } from './storefront-catalog';
 function buildCatalog(overrides: Partial<PublicCatalog> = {}): PublicCatalog {
   return {
     name: 'Loja da Ana',
+    logoUrl: null,
     primaryColorHex: '#DB2777',
     buttonColorHex: '#7C3AED',
     instagramHandle: 'lojadaana',

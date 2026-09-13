@@ -7,6 +7,7 @@ import { getPublicCatalog } from './public-catalog';
 
 const catalogDto = {
   name: 'Loja da Ana',
+  logoUrl: null,
   primaryColorHex: '#DB2777',
   buttonColorHex: '#7C3AED',
   instagramHandle: 'lojadaana',
@@ -27,6 +28,7 @@ describe('getPublicCatalog', () => {
 
     expect(catalog).toEqual({
       name: 'Loja da Ana',
+      logoUrl: null,
       primaryColorHex: '#DB2777',
       buttonColorHex: '#7C3AED',
       instagramHandle: 'lojadaana',

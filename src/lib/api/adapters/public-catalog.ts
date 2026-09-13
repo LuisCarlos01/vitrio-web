@@ -16,6 +16,7 @@ type PublicProductResponseBody = {
 
 type PublicCatalogResponseBody = {
   name: string;
+  logoUrl: string | null;
   primaryColorHex: string;
   buttonColorHex: string;
   instagramHandle: string | null;
@@ -42,6 +43,7 @@ export type PublicProduct = {
 
 export type PublicCatalog = {
   name: string;
+  logoUrl: string | null;
   primaryColorHex: string;
   buttonColorHex: string;
   instagramHandle: string | null;
@@ -75,6 +77,7 @@ export function toPublicCatalog(
 ): PublicCatalog {
   return {
     name: body.name,
+    logoUrl: body.logoUrl,
     primaryColorHex: body.primaryColorHex,
     buttonColorHex: body.buttonColorHex,
     instagramHandle: body.instagramHandle,

@@ -5,6 +5,7 @@ describe('toPublicCatalog', () => {
   it('maps the raw public catalog response body to a domain PublicCatalog', () => {
     const apiResponseBody = {
       name: 'Loja da Ana',
+      logoUrl: 'https://cdn.example.com/logo.png',
       primaryColorHex: '#DB2777',
       buttonColorHex: '#7C3AED',
       instagramHandle: 'lojadaana',
@@ -26,6 +27,7 @@ describe('toPublicCatalog', () => {
 
     expect(toPublicCatalog(apiResponseBody)).toEqual({
       name: 'Loja da Ana',
+      logoUrl: 'https://cdn.example.com/logo.png',
       primaryColorHex: '#DB2777',
       buttonColorHex: '#7C3AED',
       instagramHandle: 'lojadaana',
@@ -49,6 +51,7 @@ describe('toPublicCatalog', () => {
   it('maps a null whatsappNumber (unverified store) and null instagramHandle', () => {
     const apiResponseBody = {
       name: 'Loja da Ana',
+      logoUrl: null,
       primaryColorHex: '#DB2777',
       buttonColorHex: '#7C3AED',
       instagramHandle: null,
@@ -61,5 +64,20 @@ describe('toPublicCatalog', () => {
 
     expect(catalog.whatsappNumber).toBeNull();
     expect(catalog.instagramHandle).toBeNull();
+  });
+
+  it('maps a null logoUrl when the store has no logo', () => {
+    const apiResponseBody = {
+      name: 'Loja da Ana',
+      logoUrl: null,
+      primaryColorHex: '#DB2777',
+      buttonColorHex: '#7C3AED',
+      instagramHandle: null,
+      whatsappNumber: null,
+      categories: [],
+      products: [],
+    };
+
+    expect(toPublicCatalog(apiResponseBody).logoUrl).toBeNull();
   });
 });
