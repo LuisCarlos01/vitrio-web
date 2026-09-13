@@ -85,6 +85,7 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
         </>
       )}
       <ProductDetailModal
+        key={detailProduct?.id ?? 'none'}
         product={detailProduct}
         categoryName={detailCategoryName}
         onClose={() => setDetailProduct(null)}

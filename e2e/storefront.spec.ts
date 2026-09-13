@@ -1,14 +1,6 @@
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
-// Faz upload de imagem de verdade (POST /assets), que a vitrio-api sobe pro S3
-// real. No CI as credenciais são fake, então o upload falha — mesma decisão
-// já registrada em dashboard-products.spec.ts.
-test.skip(
-  !!process.env.CI,
-  'requires real (or LocalStack) S3 credentials, unavailable in CI today',
-);
-
 function uniqueEmail() {
   return `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 }
@@ -16,6 +8,15 @@ function uniqueEmail() {
 test('a customer can browse the public storefront, filter by category, and build a cart', async ({
   page,
 }) => {
+  // Faz upload de imagem de verdade (POST /assets), que a vitrio-api sobe pro
+  // S3 real. No CI as credenciais são fake, então o upload falha — mesma
+  // decisão já registrada em dashboard-products.spec.ts. Só este teste
+  // depende de upload; o teste de 404 abaixo roda normalmente em CI.
+  test.skip(
+    !!process.env.CI,
+    'requires real (or LocalStack) S3 credentials, unavailable in CI today',
+  );
+
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
   await page.getByLabel(/senha/i).fill('correct-horse-battery');

@@ -87,6 +87,35 @@ describe('ProductDetailModal', () => {
     expect(screen.getByRole('button', { name: 'Esgotado' })).toBeDisabled();
   });
 
+  it('resets the quantity to 1 when a different product opens while mounted', async () => {
+    const { rerender } = render(
+      <ProductDetailModal
+        key="prod-1"
+        product={buildProduct()}
+        categoryName="Perfumes"
+        onClose={vi.fn()}
+        onAddToCart={vi.fn()}
+      />,
+    );
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Aumentar quantidade' }),
+    );
+    expect(screen.getByText('2')).toBeInTheDocument();
+
+    rerender(
+      <ProductDetailModal
+        key="prod-2"
+        product={buildProduct({ id: 'prod-2', name: 'Glamour Noir' })}
+        categoryName="Perfumes"
+        onClose={vi.fn()}
+        onAddToCart={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
   it('calls onClose when the close button is clicked', async () => {
     const onClose = vi.fn();
     render(

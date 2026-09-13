@@ -48,6 +48,31 @@ describe('useCartStore', () => {
     ]);
   });
 
+  it('refreshes the persisted name/imageUrl when adding an already-cart product again', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      1,
+    );
+    store.addItem(
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom Renomeado',
+        imageUrl: 'https://cdn.example.com/eggeo-novo.png',
+      },
+      1,
+    );
+
+    expect(useCartStore.getState().items).toEqual([
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom Renomeado',
+        imageUrl: 'https://cdn.example.com/eggeo-novo.png',
+        quantity: 2,
+      },
+    ]);
+  });
+
   it('sets an absolute quantity for an item already in the cart', () => {
     const store = useCartStore.getState();
     store.addItem(
