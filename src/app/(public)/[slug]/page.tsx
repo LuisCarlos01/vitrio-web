@@ -11,7 +11,7 @@ export default async function StorefrontPage({
   const { slug } = await params;
   const catalog = await fetchCatalogOrNotFound(slug);
 
-  return <StorefrontCatalog catalog={catalog} />;
+  return <StorefrontCatalog slug={slug} catalog={catalog} />;
 }
 
 async function fetchCatalogOrNotFound(slug: string) {

@@ -16,7 +16,13 @@ import { WhatsappFloatingButton } from './whatsapp-floating-button';
 
 const MAX_BANNER_SLIDES = 4;
 
-export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
+export function StorefrontCatalog({
+  slug,
+  catalog,
+}: {
+  slug: string;
+  catalog: PublicCatalog;
+}) {
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [detailProduct, setDetailProduct] = useState<PublicProduct | null>(
     null,
@@ -33,6 +39,7 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
     const product = catalog.products.find((item) => item.id === productId);
     if (!product) return;
     addItem(
+      slug,
       { productId: product.id, name: product.name, imageUrl: product.imageUrl },
       quantity,
     );
@@ -66,7 +73,7 @@ export function StorefrontCatalog({ catalog }: { catalog: PublicCatalog }) {
         logoUrl={catalog.logoUrl}
         instagramHandle={catalog.instagramHandle}
       />
-      <CartDrawer whatsappNumber={catalog.whatsappNumber} />
+      <CartDrawer slug={slug} whatsappNumber={catalog.whatsappNumber} />
       <BannerCarousel slides={bannerSlides} />
       {catalog.products.length === 0 ? (
         <p>Esta loja ainda não tem produtos.</p>
