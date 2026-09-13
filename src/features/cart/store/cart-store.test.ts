@@ -1,23 +1,26 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCartStore } from './cart-store';
 
 const STORAGE_KEY = 'vitrio-cart';
+const SLUG_A = 'loja-da-ana';
+const SLUG_B = 'loja-do-bruno';
 
 describe('useCartStore', () => {
   beforeEach(() => {
-    useCartStore.setState({ items: [] });
+    useCartStore.setState({ itemsBySlug: {} });
     localStorage.clear();
   });
 
-  it('adds a new item with the given quantity', () => {
+  it('adds a new item with the given quantity, scoped to the store slug', () => {
     useCartStore
       .getState()
       .addItem(
+        SLUG_A,
         { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
         2,
       );
 
-    expect(useCartStore.getState().items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
@@ -27,18 +30,51 @@ describe('useCartStore', () => {
     ]);
   });
 
-  it('accumulates quantity when adding a product already in the cart', () => {
+  it('keeps carts from different stores completely separate', () => {
     const store = useCartStore.getState();
     store.addItem(
+      SLUG_A,
       { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
       2,
     );
     store.addItem(
+      SLUG_B,
+      { productId: 'prod-9', name: 'Colônia do Bruno', imageUrl: null },
+      1,
+    );
+
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantity: 2,
+      },
+    ]);
+    expect(useCartStore.getState().itemsBySlug[SLUG_B]).toEqual([
+      {
+        productId: 'prod-9',
+        name: 'Colônia do Bruno',
+        imageUrl: null,
+        quantity: 1,
+      },
+    ]);
+  });
+
+  it('accumulates quantity when adding a product already in that store cart', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      SLUG_A,
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      2,
+    );
+    store.addItem(
+      SLUG_A,
       { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
       3,
     );
 
-    expect(useCartStore.getState().items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
@@ -51,10 +87,12 @@ describe('useCartStore', () => {
   it('refreshes the persisted name/imageUrl when adding an already-cart product again', () => {
     const store = useCartStore.getState();
     store.addItem(
+      SLUG_A,
       { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
       1,
     );
     store.addItem(
+      SLUG_A,
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom Renomeado',
@@ -63,7 +101,7 @@ describe('useCartStore', () => {
       1,
     );
 
-    expect(useCartStore.getState().items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom Renomeado',
@@ -73,65 +111,20 @@ describe('useCartStore', () => {
     ]);
   });
 
-  it('sets an absolute quantity for an item already in the cart', () => {
+  it("adding a product to store B does not touch store A's cart, even with the same productId", () => {
     const store = useCartStore.getState();
     store.addItem(
-      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-      2,
-    );
-    store.setQuantity('prod-1', 7);
-
-    expect(useCartStore.getState().items[0].quantity).toBe(7);
-  });
-
-  it('removes the item when setQuantity is called with 0', () => {
-    const store = useCartStore.getState();
-    store.addItem(
-      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-      2,
-    );
-    store.setQuantity('prod-1', 0);
-
-    expect(useCartStore.getState().items).toEqual([]);
-  });
-
-  it('removes an item explicitly via removeItem', () => {
-    const store = useCartStore.getState();
-    store.addItem(
-      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-      2,
-    );
-    store.removeItem('prod-1');
-
-    expect(useCartStore.getState().items).toEqual([]);
-  });
-
-  it('clears every item via clear', () => {
-    const store = useCartStore.getState();
-    store.addItem(
+      SLUG_A,
       { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
       2,
     );
     store.addItem(
-      { productId: 'prod-2', name: 'Glamour Noir', imageUrl: null },
-      1,
+      SLUG_B,
+      { productId: 'prod-1', name: 'Perfume Homônimo', imageUrl: null },
+      5,
     );
-    store.clear();
 
-    expect(useCartStore.getState().items).toEqual([]);
-  });
-
-  it('persists items to localStorage so the cart survives a reload', () => {
-    useCartStore
-      .getState()
-      .addItem(
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
-
-    const persisted = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
-
-    expect(persisted?.state?.items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
@@ -139,5 +132,111 @@ describe('useCartStore', () => {
         quantity: 2,
       },
     ]);
+  });
+
+  it('sets an absolute quantity for an item already in that store cart', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      SLUG_A,
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      2,
+    );
+    store.setQuantity(SLUG_A, 'prod-1', 7);
+
+    expect(useCartStore.getState().itemsBySlug[SLUG_A][0].quantity).toBe(7);
+  });
+
+  it('removes the item when setQuantity is called with 0', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      SLUG_A,
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      2,
+    );
+    store.setQuantity(SLUG_A, 'prod-1', 0);
+
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([]);
+  });
+
+  it('removes an item explicitly via removeItem, scoped to the store slug', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      SLUG_A,
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      2,
+    );
+    store.removeItem(SLUG_A, 'prod-1');
+
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([]);
+  });
+
+  it('clears every item of a single store via clear, leaving other stores untouched', () => {
+    const store = useCartStore.getState();
+    store.addItem(
+      SLUG_A,
+      { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+      2,
+    );
+    store.addItem(
+      SLUG_B,
+      { productId: 'prod-9', name: 'Colônia do Bruno', imageUrl: null },
+      1,
+    );
+    store.clear(SLUG_A);
+
+    expect(useCartStore.getState().itemsBySlug[SLUG_A]).toEqual([]);
+    expect(useCartStore.getState().itemsBySlug[SLUG_B]).toEqual([
+      {
+        productId: 'prod-9',
+        name: 'Colônia do Bruno',
+        imageUrl: null,
+        quantity: 1,
+      },
+    ]);
+  });
+
+  it('persists items to localStorage, namespaced by store slug, so the cart survives a reload', () => {
+    useCartStore
+      .getState()
+      .addItem(
+        SLUG_A,
+        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
+        2,
+      );
+
+    const persisted = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+
+    expect(persisted?.state?.itemsBySlug?.[SLUG_A]).toEqual([
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantity: 2,
+      },
+    ]);
+  });
+
+  it('migrates a legacy (pre-slug) persisted cart to an empty itemsBySlug map instead of crashing', async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          items: [
+            {
+              productId: 'old-1',
+              name: 'Produto antigo',
+              imageUrl: null,
+              quantity: 3,
+            },
+          ],
+        },
+        version: 0,
+      }),
+    );
+
+    vi.resetModules();
+    const { useCartStore: rehydratedStore } = await import('./cart-store');
+
+    expect(rehydratedStore.getState().itemsBySlug).toEqual({});
   });
 });

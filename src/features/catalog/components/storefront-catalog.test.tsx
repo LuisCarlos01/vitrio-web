@@ -5,6 +5,8 @@ import type { PublicCatalog } from '@/lib/api/adapters/public-catalog';
 import { useCartStore } from '@/features/cart/store/cart-store';
 import { StorefrontCatalog } from './storefront-catalog';
 
+const SLUG = 'loja-da-ana';
+
 function buildCatalog(overrides: Partial<PublicCatalog> = {}): PublicCatalog {
   return {
     name: 'Loja da Ana',
@@ -45,11 +47,11 @@ function buildCatalog(overrides: Partial<PublicCatalog> = {}): PublicCatalog {
 
 describe('StorefrontCatalog', () => {
   beforeEach(() => {
-    useCartStore.setState({ items: [] });
+    useCartStore.setState({ itemsBySlug: {} });
   });
 
   it('renders the store header and every product when "Todos" is active', () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     expect(
       screen.getByRole('heading', { name: 'Loja da Ana' }),
@@ -59,7 +61,7 @@ describe('StorefrontCatalog', () => {
   });
 
   it('filters the grid to the selected category', async () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Perfumes' }));
 
@@ -68,7 +70,12 @@ describe('StorefrontCatalog', () => {
   });
 
   it('shows an empty-catalog message when there are no products', () => {
-    render(<StorefrontCatalog catalog={buildCatalog({ products: [] })} />);
+    render(
+      <StorefrontCatalog
+        slug={SLUG}
+        catalog={buildCatalog({ products: [] })}
+      />,
+    );
 
     expect(
       screen.getByText('Esta loja ainda não tem produtos.'),
@@ -77,7 +84,7 @@ describe('StorefrontCatalog', () => {
 
   it("exposes the tenant's colors as CSS custom properties", () => {
     const { container } = render(
-      <StorefrontCatalog catalog={buildCatalog()} />,
+      <StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />,
     );
 
     const root = container.firstElementChild as HTMLElement;
@@ -85,14 +92,14 @@ describe('StorefrontCatalog', () => {
     expect(root.style.getPropertyValue('--tenant-button')).toBe('#7C3AED');
   });
 
-  it('adds a product to the cart store when its card add-to-cart button is used', async () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+  it('adds a product to the cart store, scoped to the store slug, when its card add-to-cart button is used', async () => {
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     await userEvent.click(
       screen.getAllByRole('button', { name: 'Adicionar ao carrinho' })[0],
     );
 
-    expect(useCartStore.getState().items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG]).toEqual([
       {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
@@ -100,10 +107,11 @@ describe('StorefrontCatalog', () => {
         quantity: 1,
       },
     ]);
+    expect(useCartStore.getState().itemsBySlug['outra-loja']).toBeUndefined();
   });
 
   it('opens the product detail modal when a product name is clicked, and adds to cart from it', async () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     await userEvent.click(screen.getByText('Glamour Noir'));
 
@@ -117,7 +125,7 @@ describe('StorefrontCatalog', () => {
       within(dialog).getByRole('button', { name: 'Adicionar ao carrinho' }),
     );
 
-    expect(useCartStore.getState().items).toEqual([
+    expect(useCartStore.getState().itemsBySlug[SLUG]).toEqual([
       {
         productId: 'prod-2',
         name: 'Glamour Noir',
@@ -128,16 +136,33 @@ describe('StorefrontCatalog', () => {
   });
 
   it('renders the cart drawer trigger wired to the catalog whatsappNumber', () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     expect(
       screen.getByRole('button', { name: /Ver carrinho/ }),
     ).toBeInTheDocument();
   });
 
+  it('does not show items added while browsing a different store', () => {
+    useCartStore
+      .getState()
+      .addItem(
+        'outra-loja',
+        { productId: 'prod-9', name: 'Produto de outra loja', imageUrl: null },
+        3,
+      );
+
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
+
+    expect(
+      screen.getByRole('button', { name: /Ver carrinho.*0/ }),
+    ).toBeInTheDocument();
+  });
+
   it('renders a banner carousel slide with an image for each product that has one', () => {
     render(
       <StorefrontCatalog
+        slug={SLUG}
         catalog={buildCatalog({
           products: [
             {
@@ -160,7 +185,7 @@ describe('StorefrontCatalog', () => {
   });
 
   it('renders the WhatsApp floating button when the number is verified', () => {
-    render(<StorefrontCatalog catalog={buildCatalog()} />);
+    render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 
     expect(
       screen.getByRole('link', { name: /Falar no WhatsApp/ }),

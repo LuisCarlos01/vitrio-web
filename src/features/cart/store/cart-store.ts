@@ -9,48 +9,69 @@ export type CartItem = {
 };
 
 type CartState = {
-  items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
-  setQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
-  clear: () => void;
+  itemsBySlug: Record<string, CartItem[]>;
+  addItem: (
+    slug: string,
+    item: Omit<CartItem, 'quantity'>,
+    quantity: number,
+  ) => void;
+  setQuantity: (slug: string, productId: string, quantity: number) => void;
+  removeItem: (slug: string, productId: string) => void;
+  clear: (slug: string) => void;
 };
 
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
-      items: [],
-      addItem: (item, quantity) =>
+      itemsBySlug: {},
+      addItem: (slug, item, quantity) =>
         set((state) => {
-          const existing = state.items.find(
+          const items = state.itemsBySlug[slug] ?? [];
+          const existing = items.find(
             (cartItem) => cartItem.productId === item.productId,
           );
-          if (existing) {
-            return {
-              items: state.items.map((cartItem) =>
+          const nextItems = existing
+            ? items.map((cartItem) =>
                 cartItem.productId === item.productId
                   ? { ...item, quantity: cartItem.quantity + quantity }
                   : cartItem,
-              ),
-            };
-          }
-          return { items: [...state.items, { ...item, quantity }] };
+              )
+            : [...items, { ...item, quantity }];
+
+          return { itemsBySlug: { ...state.itemsBySlug, [slug]: nextItems } };
         }),
-      setQuantity: (productId, quantity) =>
-        set((state) => ({
-          items:
+      setQuantity: (slug, productId, quantity) =>
+        set((state) => {
+          const items = state.itemsBySlug[slug] ?? [];
+          const nextItems =
             quantity <= 0
-              ? state.items.filter((item) => item.productId !== productId)
-              : state.items.map((item) =>
+              ? items.filter((item) => item.productId !== productId)
+              : items.map((item) =>
                   item.productId === productId ? { ...item, quantity } : item,
-                ),
-        })),
-      removeItem: (productId) =>
+                );
+
+          return { itemsBySlug: { ...state.itemsBySlug, [slug]: nextItems } };
+        }),
+      removeItem: (slug, productId) =>
         set((state) => ({
-          items: state.items.filter((item) => item.productId !== productId),
+          itemsBySlug: {
+            ...state.itemsBySlug,
+            [slug]: (state.itemsBySlug[slug] ?? []).filter(
+              (item) => item.productId !== productId,
+            ),
+          },
         })),
-      clear: () => set({ items: [] }),
+      clear: (slug) =>
+        set((state) => ({
+          itemsBySlug: { ...state.itemsBySlug, [slug]: [] },
+        })),
     }),
-    { name: 'vitrio-cart' },
+    {
+      name: 'vitrio-cart',
+      version: 1,
+      // v0 guardava um `items: CartItem[]` global (sem escopo por loja) —
+      // formato incompatível, não dá pra saber a que slug pertencia.
+      migrate: (): Pick<CartState, 'itemsBySlug'> => ({ itemsBySlug: {} }),
+    },
   ),
 );

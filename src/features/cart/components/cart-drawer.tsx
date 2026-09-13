@@ -5,13 +5,17 @@ import { buildWhatsappCheckoutUrl } from '../lib/build-whatsapp-checkout-url';
 import { useCartStore } from '../store/cart-store';
 import { QuantityStepper } from './quantity-stepper';
 
+const EMPTY_ITEMS: never[] = [];
+
 export function CartDrawer({
+  slug,
   whatsappNumber,
 }: {
+  slug: string;
   whatsappNumber: string | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const items = useCartStore((state) => state.items);
+  const items = useCartStore((state) => state.itemsBySlug[slug] ?? EMPTY_ITEMS);
   const setQuantity = useCartStore((state) => state.setQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
   const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -37,13 +41,13 @@ export function CartDrawer({
                     <QuantityStepper
                       quantity={item.quantity}
                       onChange={(quantity) =>
-                        setQuantity(item.productId, quantity)
+                        setQuantity(slug, item.productId, quantity)
                       }
                     />
                     <button
                       type="button"
                       aria-label={`Remover ${item.name}`}
-                      onClick={() => removeItem(item.productId)}
+                      onClick={() => removeItem(slug, item.productId)}
                     >
                       Remover
                     </button>
