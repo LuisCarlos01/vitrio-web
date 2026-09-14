@@ -11,9 +11,7 @@ test.describe('dashboard route guard', () => {
     await page.waitForURL('/login');
   });
 
-  test('also guards /store and /whatsapp, extracted from /dashboard in this restructure', async ({
-    page,
-  }) => {
+  test('also guards /store and /whatsapp', async ({ page }) => {
     await page.goto('/store');
     await page.waitForURL('/login');
 
