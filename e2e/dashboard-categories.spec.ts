@@ -13,11 +13,11 @@ test('a reseller can create, rename, and delete a category', async ({
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 
-  await page.getByRole('link', { name: /categorias/i }).click();
-  await page.waitForURL('/categories');
+  await page.goto('/categories');
 
   await page.getByLabel(/nome da categoria/i).fill('Perfumes');
   await page.getByRole('button', { name: /adicionar/i }).click();

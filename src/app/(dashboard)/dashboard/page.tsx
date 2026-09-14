@@ -1,17 +1,15 @@
 import Link from 'next/link';
-import { CatalogForm } from '@/features/dashboard/components/catalog-form';
-import { WhatsappForm } from '@/features/dashboard/components/whatsapp-form';
 
 export default function DashboardPage() {
   return (
     <main>
-      <h1>Minha loja</h1>
-      <CatalogForm />
-      <h2>WhatsApp</h2>
-      <WhatsappForm />
+      <h1>Catálogo</h1>
+      <p>Resumo em breve.</p>
       <nav>
-        <Link href="/categories">Categorias</Link>
+        <Link href="/store">Loja</Link>
+        <Link href="/whatsapp">WhatsApp</Link>
         <Link href="/products">Produtos</Link>
+        <Link href="/categories">Categorias</Link>
       </nav>
     </main>
   );

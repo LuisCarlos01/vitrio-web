@@ -23,14 +23,14 @@ test('a customer can browse the public storefront, filter by category, and build
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
   const slug = await page
     .locator('xpath=//label[text()="Slug"]/following-sibling::p')
     .textContent();
 
-  await page.getByRole('link', { name: /categorias/i }).click();
-  await page.waitForURL('/categories');
+  await page.goto('/categories');
   await page.getByLabel(/nome da categoria/i).fill('Perfumes');
   await page.getByRole('button', { name: /adicionar/i }).click();
   await expect(page.getByText('Perfumes')).toBeVisible();

@@ -13,11 +13,11 @@ test('a reseller can preview a CSV and confirm the import', async ({
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 
-  await page.getByRole('link', { name: /produtos/i }).click();
-  await page.waitForURL('/products');
+  await page.goto('/products');
 
   const csv =
     'nome,codigo,descricao,imagem\n' +

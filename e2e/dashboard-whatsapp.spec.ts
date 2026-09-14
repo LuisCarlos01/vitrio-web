@@ -13,9 +13,11 @@ test('a reseller can configure and verify their WhatsApp number', async ({
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 
+  await page.goto('/whatsapp');
   await page.getByLabel(/whatsapp/i).fill('(11) 91234-5678');
   await page.getByRole('button', { name: /salvar whatsapp/i }).click();
 

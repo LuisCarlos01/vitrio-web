@@ -11,6 +11,7 @@ test("a reseller can edit and persist their store's name", async ({ page }) => {
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 

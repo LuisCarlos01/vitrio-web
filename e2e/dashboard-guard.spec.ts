@@ -11,6 +11,16 @@ test.describe('dashboard route guard', () => {
     await page.waitForURL('/login');
   });
 
+  test('also guards /store and /whatsapp, extracted from /dashboard in this restructure', async ({
+    page,
+  }) => {
+    await page.goto('/store');
+    await page.waitForURL('/login');
+
+    await page.goto('/whatsapp');
+    await page.waitForURL('/login');
+  });
+
   test('allows access to a dashboard route after logging in', async ({
     page,
   }) => {
@@ -20,6 +30,7 @@ test.describe('dashboard route guard', () => {
     await page.getByRole('button', { name: /criar conta/i }).click();
     await page.waitForURL('/dashboard');
 
+    await page.goto('/store');
     await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
     await page.getByRole('button', { name: /criar loja/i }).click();
 

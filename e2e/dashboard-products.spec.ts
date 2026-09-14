@@ -23,11 +23,11 @@ test('a reseller can create a product, edit its stock/visibility, and delete it'
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
+  await page.goto('/store');
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 
-  await page.getByRole('link', { name: /produtos/i }).click();
-  await page.waitForURL('/products');
+  await page.goto('/products');
 
   await page.getByLabel(/^nome$/i).fill('Perfume X');
   await page.getByLabel(/sku/i).fill('PRF-001');
