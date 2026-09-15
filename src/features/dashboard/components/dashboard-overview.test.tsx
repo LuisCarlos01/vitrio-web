@@ -21,6 +21,7 @@ function buildCatalog(overrides: Partial<Catalog> = {}): Catalog {
     whatsappNumber: null,
     isWhatsappVerified: false,
     whatsappVerifiedAt: null,
+    logoUrl: null,
     ...overrides,
   };
 }

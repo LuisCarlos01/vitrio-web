@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 function uniqueEmail() {
@@ -86,4 +87,43 @@ test('a reseller sees a non-blocking contrast warning for a hard-to-read palette
   );
   await saveButton.click();
   await updateResponse;
+});
+
+test('a reseller can upload a logo and see it persist after reload', async ({
+  page,
+}) => {
+  // Faz upload de imagem de verdade (POST /assets), que a vitrio-api sobe pro
+  // S3 real. No CI as credenciais são fake, então o upload falha — só roda de
+  // forma confiável localmente (mesma ressalva de e2e/dashboard-products.spec.ts).
+  test.skip(
+    !!process.env.CI,
+    'requires real (or LocalStack) S3 credentials, unavailable in CI today',
+  );
+
+  await page.goto('/register');
+  await page.getByLabel(/e-mail/i).fill(uniqueEmail());
+  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByRole('button', { name: /criar conta/i }).click();
+  await page.waitForURL('/dashboard');
+
+  await page.goto('/store');
+  await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+  await page.getByRole('button', { name: /criar loja/i }).click();
+
+  await expect(page.getByAltText(/logo atual/i)).not.toBeVisible();
+
+  await page
+    .getByLabel(/^logo$/i)
+    .setInputFiles(path.join(__dirname, 'fixtures', 'product.png'));
+  const updateResponse = page.waitForResponse(
+    (response) => response.request().method() === 'PATCH' && response.ok(),
+  );
+  await page.getByRole('button', { name: /salvar dados da loja/i }).click();
+  await updateResponse;
+
+  await expect(page.getByAltText(/logo atual/i)).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByAltText(/logo atual/i)).toBeVisible();
 });
