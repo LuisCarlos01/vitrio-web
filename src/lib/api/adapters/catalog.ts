@@ -20,6 +20,7 @@ export type Catalog = {
   instagramHandle: string | null;
   whatsappNumber: string | null;
   isWhatsappVerified: boolean;
+  whatsappVerifiedAt: string | null;
 };
 
 export function toCatalog(body: CatalogResponseBody): Catalog {
@@ -32,5 +33,6 @@ export function toCatalog(body: CatalogResponseBody): Catalog {
     instagramHandle: body.instagramHandle,
     whatsappNumber: body.whatsappNumber,
     isWhatsappVerified: body.whatsappVerificationStatus === 'VERIFIED',
+    whatsappVerifiedAt: body.whatsappVerifiedAt,
   };
 }
