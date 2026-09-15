@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
 import { useCreateCatalog } from '../hooks/use-create-catalog';
 import { useUpdateCatalog } from '../hooks/use-update-catalog';
@@ -54,9 +55,12 @@ function CreateCatalogForm() {
 export function CatalogForm() {
   const { data: catalog, isLoading } = useCatalog();
   const updateCatalog = useUpdateCatalog();
-  const { register, handleSubmit, reset } = useForm<CatalogFormValues>({
-    resolver: zodResolver(catalogFormSchema),
-  });
+  const { register, handleSubmit, reset, watch, setValue } =
+    useForm<CatalogFormValues>({
+      resolver: zodResolver(catalogFormSchema),
+    });
+  const primaryColorHex = watch('primaryColorHex');
+  const buttonColorHex = watch('buttonColorHex');
 
   useEffect(() => {
     if (catalog) {
@@ -91,14 +95,18 @@ export function CatalogForm() {
         <Label htmlFor="name">Nome</Label>
         <Input id="name" {...register('name')} />
       </div>
-      <div>
-        <Label htmlFor="primaryColorHex">Cor primária</Label>
-        <Input id="primaryColorHex" {...register('primaryColorHex')} />
-      </div>
-      <div>
-        <Label htmlFor="buttonColorHex">Cor do botão</Label>
-        <Input id="buttonColorHex" {...register('buttonColorHex')} />
-      </div>
+      <ColorPalettePicker
+        primaryColorHex={primaryColorHex ?? ''}
+        buttonColorHex={buttonColorHex ?? ''}
+        onChange={(colors) => {
+          setValue('primaryColorHex', colors.primaryColorHex, {
+            shouldDirty: true,
+          });
+          setValue('buttonColorHex', colors.buttonColorHex, {
+            shouldDirty: true,
+          });
+        }}
+      />
       <div>
         <Label htmlFor="instagramHandle">Instagram</Label>
         <Input id="instagramHandle" {...register('instagramHandle')} />

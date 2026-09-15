@@ -28,3 +28,26 @@ test("a reseller can edit and persist their store's name", async ({ page }) => {
     'Loja da Ana Atualizada',
   );
 });
+
+test('a reseller can pick a curated color palette and persist it', async ({
+  page,
+}) => {
+  await page.goto('/register');
+  await page.getByLabel(/e-mail/i).fill(uniqueEmail());
+  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByRole('button', { name: /criar conta/i }).click();
+  await page.waitForURL('/dashboard');
+
+  await page.goto('/store');
+  await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+  await page.getByRole('button', { name: /criar loja/i }).click();
+
+  await page.getByRole('radio', { name: /noturno/i }).click();
+  await page.getByRole('button', { name: /salvar dados da loja/i }).click();
+
+  await expect(page.getByRole('radio', { name: /noturno/i })).toBeChecked();
+
+  await page.reload();
+
+  await expect(page.getByRole('radio', { name: /noturno/i })).toBeChecked();
+});

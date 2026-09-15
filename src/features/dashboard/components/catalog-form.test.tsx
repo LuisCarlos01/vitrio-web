@@ -73,6 +73,36 @@ describe('CatalogForm', () => {
     expect(await screen.findByDisplayValue('Loja Nova')).toBeInTheDocument();
   });
 
+  it('saves the hex codes of the curated palette chosen in the color picker', async () => {
+    let receivedBody: unknown;
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1`,
+        async ({ request }) => {
+          receivedBody = await request.json();
+          return HttpResponse.json({
+            ...catalogDto,
+            primaryColorHex: '#111827',
+            buttonColorHex: '#F59E0B',
+          });
+        },
+      ),
+    );
+    const user = userEvent.setup();
+    renderCatalogForm();
+
+    await screen.findByDisplayValue('Loja da Ana');
+    await user.click(screen.getByRole('radio', { name: /noturno/i }));
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() =>
+      expect(receivedBody).toMatchObject({
+        primaryColorHex: '#111827',
+        buttonColorHex: '#F59E0B',
+      }),
+    );
+  });
+
   it('shows an error message when the API rejects the update', async () => {
     server.use(
       http.patch(`${API_BASE_URL}/api/v1/catalogs/catalog-1`, () =>
