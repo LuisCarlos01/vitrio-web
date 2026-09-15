@@ -25,6 +25,7 @@ describe('toCatalog', () => {
       instagramHandle: 'lojadaana',
       whatsappNumber: '+5511999999999',
       isWhatsappVerified: true,
+      whatsappVerifiedAt: '2026-01-01T00:00:00Z',
     });
   });
 
@@ -43,5 +44,6 @@ describe('toCatalog', () => {
     };
 
     expect(toCatalog(apiResponseBody).isWhatsappVerified).toBe(false);
+    expect(toCatalog(apiResponseBody).whatsappVerifiedAt).toBeNull();
   });
 });

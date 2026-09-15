@@ -44,6 +44,7 @@ describe('getCatalogs', () => {
         instagramHandle: 'lojadaana',
         whatsappNumber: null,
         isWhatsappVerified: false,
+        whatsappVerifiedAt: null,
       },
     ]);
   });
