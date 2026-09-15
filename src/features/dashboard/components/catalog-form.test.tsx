@@ -139,6 +139,57 @@ describe('CatalogForm', () => {
     );
   });
 
+  it('resends the already-uploaded logoAssetId when the PATCH fails and the reseller retries', async () => {
+    let patchAttempts = 0;
+    const receivedBodies: unknown[] = [];
+    server.use(
+      http.post(`${API_BASE_URL}/api/v1/catalogs/catalog-1/assets`, () =>
+        HttpResponse.json({
+          id: 'asset-1',
+          catalogId: 'catalog-1',
+          contentType: 'image/png',
+          byteSize: 4,
+          publicUrl: 'https://cdn.example.com/asset-1.png',
+          createdAt: '2026-01-01T00:00:00Z',
+        }),
+      ),
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1`,
+        async ({ request }) => {
+          patchAttempts += 1;
+          receivedBodies.push(await request.json());
+          if (patchAttempts === 1) {
+            return HttpResponse.json(
+              { message: 'server error' },
+              { status: 500 },
+            );
+          }
+          return HttpResponse.json({
+            ...catalogDto,
+            logoUrl: 'https://cdn.example.com/asset-1.png',
+          });
+        },
+      ),
+    );
+    const user = userEvent.setup();
+    renderCatalogForm();
+
+    await screen.findByDisplayValue('Loja da Ana');
+    const file = new File(['fake'], 'logo.png', { type: 'image/png' });
+    await user.upload(screen.getByLabelText(/^logo$/i), file);
+
+    // primeira tentativa: falha
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+    await screen.findByText(/não foi possível salvar/i);
+
+    // segunda tentativa: sem escolher o arquivo de novo
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    await waitFor(() => expect(patchAttempts).toBe(2));
+    expect(receivedBodies[0]).toMatchObject({ logoAssetId: 'asset-1' });
+    expect(receivedBodies[1]).toMatchObject({ logoAssetId: 'asset-1' });
+  });
+
   it('saves without touching the logo when no new file is chosen', async () => {
     let receivedBody: unknown;
     server.use(

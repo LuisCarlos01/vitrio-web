@@ -15,6 +15,7 @@ const catalogDto = {
   whatsappNumber: null,
   whatsappVerificationStatus: 'UNVERIFIED' as const,
   whatsappVerifiedAt: null,
+  logoUrl: null,
   createdAt: '2025-12-01T00:00:00Z',
 };
 
@@ -45,6 +46,7 @@ describe('getCatalogs', () => {
         whatsappNumber: null,
         isWhatsappVerified: false,
         whatsappVerifiedAt: null,
+        logoUrl: null,
       },
     ]);
   });

@@ -42,6 +42,6 @@ export function toCatalog(body: CatalogResponseBody): Catalog {
     whatsappNumber: body.whatsappNumber,
     isWhatsappVerified: body.whatsappVerificationStatus === 'VERIFIED',
     whatsappVerifiedAt: body.whatsappVerifiedAt,
-    logoUrl: body.logoUrl,
+    logoUrl: body.logoUrl ?? null,
   };
 }

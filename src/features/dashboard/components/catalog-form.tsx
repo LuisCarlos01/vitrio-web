@@ -63,6 +63,11 @@ export function CatalogForm() {
   const uploadAsset = useUploadAsset();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
+  // guardado à parte de `logoFile` (que é limpo assim que o upload termina) pra
+  // sobreviver a uma falha do PATCH e ser reenviado numa nova tentativa de salvar.
+  const [pendingLogoAssetId, setPendingLogoAssetId] = useState<string | null>(
+    null,
+  );
   const { register, handleSubmit, reset, watch, setValue } =
     useForm<CatalogFormValues>({
       resolver: zodResolver(catalogFormSchema),
@@ -98,6 +103,7 @@ export function CatalogForm() {
       });
       setUploadedLogoUrl(null);
       setLogoFile(null);
+      setPendingLogoAssetId(null);
     }
   }, [catalog, reset]);
 
@@ -115,7 +121,7 @@ export function CatalogForm() {
   return (
     <form
       onSubmit={handleSubmit(async (values) => {
-        let logoAssetId: string | undefined;
+        let logoAssetId = pendingLogoAssetId ?? undefined;
         if (logoFile) {
           const asset = await uploadAsset.mutateAsync({
             catalogId: catalog.id,
@@ -123,12 +129,16 @@ export function CatalogForm() {
           });
           logoAssetId = asset.id;
           setUploadedLogoUrl(asset.publicUrl);
+          setPendingLogoAssetId(asset.id);
           setLogoFile(null);
         }
-        updateCatalog.mutate({
-          id: catalog.id,
-          payload: { ...values, ...(logoAssetId ? { logoAssetId } : {}) },
-        });
+        updateCatalog.mutate(
+          {
+            id: catalog.id,
+            payload: { ...values, ...(logoAssetId ? { logoAssetId } : {}) },
+          },
+          { onSuccess: () => setPendingLogoAssetId(null) },
+        );
       })}
     >
       <div>
