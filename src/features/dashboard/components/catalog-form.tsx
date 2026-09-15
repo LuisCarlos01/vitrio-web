@@ -72,24 +72,24 @@ export function CatalogForm() {
 
   useEffect(() => {
     if (catalog) {
-      const hasChosenColor =
+      // só o par sentinela completo conta como "sem cor" — uma cor válida isolada
+      // (ex. resposta legada com só uma das duas nula) não pode ser descartada junto.
+      const hasUnsetColors =
         catalog.primaryColorHex != null &&
         catalog.buttonColorHex != null &&
-        !(
-          catalog.primaryColorHex.toLowerCase() ===
-            UNSET_CATALOG_COLORS.primaryColorHex.toLowerCase() &&
-          catalog.buttonColorHex.toLowerCase() ===
-            UNSET_CATALOG_COLORS.buttonColorHex.toLowerCase()
-        );
+        catalog.primaryColorHex.toLowerCase() ===
+          UNSET_CATALOG_COLORS.primaryColorHex.toLowerCase() &&
+        catalog.buttonColorHex.toLowerCase() ===
+          UNSET_CATALOG_COLORS.buttonColorHex.toLowerCase();
 
       reset({
         name: catalog.name,
-        primaryColorHex: hasChosenColor
-          ? catalog.primaryColorHex!
-          : CURATED_PALETTES[0].primaryColorHex,
-        buttonColorHex: hasChosenColor
-          ? catalog.buttonColorHex!
-          : CURATED_PALETTES[0].buttonColorHex,
+        primaryColorHex: hasUnsetColors
+          ? CURATED_PALETTES[0].primaryColorHex
+          : (catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex),
+        buttonColorHex: hasUnsetColors
+          ? CURATED_PALETTES[0].buttonColorHex
+          : (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex),
         instagramHandle: catalog.instagramHandle ?? '',
       });
     }

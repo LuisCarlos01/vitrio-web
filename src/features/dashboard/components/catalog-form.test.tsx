@@ -155,6 +155,21 @@ describe('CatalogForm', () => {
     ).toBeChecked();
   });
 
+  it('preserves a valid color when only the other one comes back null', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          { ...catalogDto, primaryColorHex: '#DB2777', buttonColorHex: null },
+        ]),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByLabelText(/cor primária \(avançado\)/i),
+    ).toHaveValue('#db2777');
+  });
+
   it('treats the backend\'s neutral placeholder colors as "no color chosen yet"', async () => {
     server.use(
       http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
