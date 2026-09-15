@@ -16,4 +16,8 @@ describe('daysSince', () => {
     const now = new Date('2026-09-15T23:00:00Z');
     expect(daysSince('2026-09-10T12:00:00Z', now)).toBe(5);
   });
+
+  it('returns null for an invalid date string instead of NaN', () => {
+    expect(daysSince('not-a-date')).toBeNull();
+  });
 });

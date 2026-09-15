@@ -13,18 +13,52 @@ function greetingName(email: string, name: string | null): string {
 }
 
 export function DashboardOverview({ catalog }: { catalog: Catalog }) {
-  const { data: me } = useMe();
-  const { data: products } = useProducts(catalog.id);
-  const { data: categories } = useCategories(catalog.id);
-  const { data: latestImport } = useLatestImport(catalog.id);
+  const meQuery = useMe();
+  const productsQuery = useProducts(catalog.id);
+  const categoriesQuery = useCategories(catalog.id);
+  const latestImportQuery = useLatestImport(catalog.id);
 
-  const activeProducts = products?.filter((product) => product.isActive) ?? [];
-  const productsWithoutPhoto =
-    products?.filter((product) => !product.imageAssetId) ?? [];
-  const categoryNameById = new Map(
-    (categories ?? []).map((category) => [category.id, category.name]),
+  const isLoading =
+    meQuery.isLoading ||
+    productsQuery.isLoading ||
+    categoriesQuery.isLoading ||
+    latestImportQuery.isLoading;
+  const isError =
+    meQuery.isError ||
+    productsQuery.isError ||
+    categoriesQuery.isError ||
+    latestImportQuery.isError;
+
+  if (isLoading) {
+    return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return <p>Não foi possível carregar o resumo. Tente novamente.</p>;
+  }
+
+  const me = meQuery.data;
+  const products = productsQuery.data ?? [];
+  const categories = categoriesQuery.data ?? [];
+  const latestImport = latestImportQuery.data ?? null;
+
+  const activeProducts = products.filter((product) => product.isActive);
+  const productsWithoutPhoto = products.filter(
+    (product) => !product.imageAssetId,
   );
-  const recentProducts = products?.slice(0, 5) ?? [];
+  const categoryNameById = new Map(
+    categories.map((category) => [category.id, category.name]),
+  );
+  const recentProducts = [...products]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 5);
+  const whatsappVerifiedDays =
+    catalog.isWhatsappVerified && catalog.whatsappVerifiedAt
+      ? daysSince(catalog.whatsappVerifiedAt)
+      : null;
 
   return (
     <main>
@@ -38,15 +72,15 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
         </article>
         <article>
           <h2>Categorias</h2>
-          <p>{categories?.length ?? 0}</p>
+          <p>{categories.length}</p>
         </article>
         <article>
           <h2>WhatsApp</h2>
           {catalog.isWhatsappVerified ? (
             <p>
               Verificado
-              {catalog.whatsappVerifiedAt &&
-                ` há ${daysSince(catalog.whatsappVerifiedAt)} dias`}
+              {whatsappVerifiedDays !== null &&
+                ` há ${whatsappVerifiedDays} dias`}
             </p>
           ) : (
             <p>Não verificado</p>
@@ -84,6 +118,8 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
           {recentProducts.map((product) => {
             const outOfStock =
               product.quantityAvailable === 0 || !product.isOrderable;
+            const isHealthy =
+              !outOfStock && product.isVisible && product.isActive;
             return (
               <tr key={product.id}>
                 <td>{product.name}</td>
@@ -93,6 +129,7 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
                     : '—'}
                 </td>
                 <td>
+                  {isHealthy && <span>Ativo</span>}
                   {outOfStock && <span>Sem estoque</span>}
                   {!product.isVisible && <span>Não visível</span>}
                   {!product.isActive && <span>Inativo</span>}

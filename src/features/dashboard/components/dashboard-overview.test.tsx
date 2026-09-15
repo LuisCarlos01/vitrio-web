@@ -93,7 +93,9 @@ function mockLatestImport(
 }
 
 function renderOverview(catalog: Catalog) {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <DashboardOverview catalog={catalog} />
@@ -109,6 +111,35 @@ describe('DashboardOverview', () => {
     mockProducts([rawProduct()]);
     mockCategories([{ id: 'cat-1', name: 'Perfumes' }]);
     mockLatestImport(null);
+  });
+
+  it('shows a loading state instead of treating pending queries as empty data', () => {
+    mockMe('Ana Souza');
+    server.use(
+      http.get(
+        `${API_BASE_URL}/api/v1/catalogs/${CATALOG_ID}/products`,
+        () => new Promise(() => {}),
+      ),
+    );
+    renderOverview(buildCatalog());
+
+    expect(screen.getByText(/carregando/i)).toBeInTheDocument();
+    expect(screen.queryByText('Produtos ativos')).not.toBeInTheDocument();
+  });
+
+  it('shows an error state instead of rendering zeroed-out cards when a query fails', async () => {
+    mockMe('Ana Souza');
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/${CATALOG_ID}/products`, () =>
+        HttpResponse.json({ message: 'boom' }, { status: 500 }),
+      ),
+    );
+    renderOverview(buildCatalog());
+
+    expect(
+      await screen.findByText(/não foi possível carregar/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Produtos ativos')).not.toBeInTheDocument();
   });
 
   it('greets the account by name when set', async () => {
@@ -219,6 +250,57 @@ describe('DashboardOverview', () => {
     expect(
       screen.getByRole('link', { name: /configurar whatsapp/i }),
     ).toHaveAttribute('href', '/whatsapp');
+  });
+
+  it('shows an "Ativo" badge for a product that is active, visible, orderable and in stock', async () => {
+    mockMe('Ana Souza');
+    mockProducts([
+      rawProduct({
+        isActive: true,
+        isVisible: true,
+        isOrderable: true,
+        quantityAvailable: 5,
+      }),
+    ]);
+    renderOverview(buildCatalog());
+
+    expect(await screen.findByText('Ativo')).toBeInTheDocument();
+  });
+
+  it('sorts recent products by createdAt (most recent first), not raw API order', async () => {
+    mockMe('Ana Souza');
+    mockProducts([
+      rawProduct({
+        id: 'old',
+        name: 'Produto Antigo',
+        createdAt: '2026-01-01T00:00:00Z',
+      }),
+      rawProduct({
+        id: 'new',
+        name: 'Produto Novo',
+        createdAt: '2026-09-01T00:00:00Z',
+      }),
+    ]);
+    renderOverview(buildCatalog());
+
+    const rows = await screen.findAllByRole('row');
+    const bodyRowNames = rows.slice(1).map((row) => row.textContent);
+    expect(bodyRowNames[0]).toContain('Produto Novo');
+    expect(bodyRowNames[1]).toContain('Produto Antigo');
+  });
+
+  it('omits the "há N dias" suffix when whatsappVerifiedAt is not a valid date', async () => {
+    mockMe('Ana Souza');
+    renderOverview(
+      buildCatalog({
+        isWhatsappVerified: true,
+        whatsappVerifiedAt: 'not-a-date',
+      }),
+    );
+
+    const verified = await screen.findByText(/^verificado$/i);
+    expect(verified).toBeInTheDocument();
+    expect(screen.queryByText(/dias/)).not.toBeInTheDocument();
   });
 
   it('lists recent products with name, category, and status badges, never a price', async () => {

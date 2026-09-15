@@ -24,6 +24,7 @@ export type Product = {
   isVisible: boolean;
   isOrderable: boolean;
   isActive: boolean;
+  createdAt: string;
 };
 
 export function toProduct(body: ProductResponseBody): Product {
@@ -38,5 +39,6 @@ export function toProduct(body: ProductResponseBody): Product {
     isVisible: body.isVisible,
     isOrderable: body.isOrderable,
     isActive: body.isActive,
+    createdAt: body.createdAt,
   };
 }
