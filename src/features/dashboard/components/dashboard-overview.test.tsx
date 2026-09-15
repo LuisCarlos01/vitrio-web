@@ -17,6 +17,7 @@ function buildCatalog(overrides: Partial<Catalog> = {}): Catalog {
     slug: 'loja-da-ana',
     primaryColorHex: null,
     buttonColorHex: null,
+    hasCustomColor: false,
     instagramHandle: null,
     whatsappNumber: null,
     isWhatsappVerified: false,

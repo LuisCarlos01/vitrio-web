@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { UNSET_CATALOG_COLORS } from '@/lib/api/adapters/catalog';
 import { contrastRatio, WCAG_AA_UI_RATIO } from '@/lib/color/wcag-contrast';
 import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
@@ -81,24 +80,17 @@ export function CatalogForm() {
 
   useEffect(() => {
     if (catalog) {
-      // só o par sentinela completo conta como "sem cor" — uma cor válida isolada
-      // (ex. resposta legada com só uma das duas nula) não pode ser descartada junto.
-      const hasUnsetColors =
-        catalog.primaryColorHex != null &&
-        catalog.buttonColorHex != null &&
-        catalog.primaryColorHex.toLowerCase() ===
-          UNSET_CATALOG_COLORS.primaryColorHex.toLowerCase() &&
-        catalog.buttonColorHex.toLowerCase() ===
-          UNSET_CATALOG_COLORS.buttonColorHex.toLowerCase();
-
+      // hasCustomColor vem do backend (spec 010) — reflete se algum PATCH já
+      // definiu uma cor de verdade, mesmo que o valor coincida com o placeholder
+      // (#6D28D9/#059669), diferente de comparar o hex em si.
       reset({
         name: catalog.name,
-        primaryColorHex: hasUnsetColors
-          ? CURATED_PALETTES[0].primaryColorHex
-          : (catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex),
-        buttonColorHex: hasUnsetColors
-          ? CURATED_PALETTES[0].buttonColorHex
-          : (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex),
+        primaryColorHex: catalog.hasCustomColor
+          ? (catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex)
+          : CURATED_PALETTES[0].primaryColorHex,
+        buttonColorHex: catalog.hasCustomColor
+          ? (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex)
+          : CURATED_PALETTES[0].buttonColorHex,
         instagramHandle: catalog.instagramHandle ?? '',
       });
       setUploadedLogoUrl(null);

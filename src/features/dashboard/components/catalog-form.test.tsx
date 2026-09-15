@@ -14,6 +14,7 @@ const catalogDto = {
   slug: 'loja-da-ana',
   primaryColorHex: '#FF00FF',
   buttonColorHex: '#00FF00',
+  hasCustomColor: true,
   instagramHandle: 'lojadaana',
   whatsappNumber: null,
   whatsappVerificationStatus: 'UNVERIFIED' as const,
@@ -281,40 +282,13 @@ describe('CatalogForm', () => {
     server.use(
       http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
         HttpResponse.json([
-          { ...catalogDto, primaryColorHex: null, buttonColorHex: null },
-        ]),
-      ),
-    );
-    renderCatalogForm();
-
-    expect(
-      await screen.findByRole('radio', { name: /clássico/i }),
-    ).toBeChecked();
-  });
-
-  it('preserves a valid color when only the other one comes back null', async () => {
-    server.use(
-      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
-        HttpResponse.json([
-          { ...catalogDto, primaryColorHex: '#DB2777', buttonColorHex: null },
-        ]),
-      ),
-    );
-    renderCatalogForm();
-
-    expect(
-      await screen.findByLabelText(/cor primária \(avançado\)/i),
-    ).toHaveValue('#db2777');
-  });
-
-  it('treats the backend\'s neutral placeholder colors as "no color chosen yet"', async () => {
-    server.use(
-      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
-        HttpResponse.json([
           {
             ...catalogDto,
+            // valores reais que o backend manda quando hasCustomColor é false
+            // (CatalogColorDefaults, spec 002) — nunca null na prática.
             primaryColorHex: '#6D28D9',
             buttonColorHex: '#059669',
+            hasCustomColor: false,
           },
         ]),
       ),
@@ -326,6 +300,53 @@ describe('CatalogForm', () => {
     ).toBeChecked();
     expect(
       screen.queryByText(/pode ficar difícil de ler/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('preserves a valid color when only the other one comes back null', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          {
+            ...catalogDto,
+            primaryColorHex: '#DB2777',
+            buttonColorHex: null,
+            hasCustomColor: true,
+          },
+        ]),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByLabelText(/cor primária \(avançado\)/i),
+    ).toHaveValue('#db2777');
+  });
+
+  it('keeps a deliberately chosen color that happens to match the backend placeholder', async () => {
+    // hasCustomColor (spec 010 do vitrio-api) resolve a ambiguidade que só
+    // comparar o hex não resolvia: mesmo que a revendedora tenha escolhido
+    // exatamente #6D28D9/#059669 via "Avançado", hasCustomColor:true garante
+    // que isso não é revertido pra Clássico num reload.
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          {
+            ...catalogDto,
+            primaryColorHex: '#6D28D9',
+            buttonColorHex: '#059669',
+            hasCustomColor: true,
+          },
+        ]),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByRole('radio', { name: /avançado/i }),
+    ).toBeChecked();
+    expect(
+      screen.queryByRole('radio', { name: /clássico/i, checked: true }),
     ).not.toBeInTheDocument();
   });
 

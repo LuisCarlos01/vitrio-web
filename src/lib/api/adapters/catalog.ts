@@ -8,15 +8,11 @@ type CatalogResponseBody = {
   whatsappNumber: string | null;
   whatsappVerificationStatus: 'UNVERIFIED' | 'VERIFIED';
   whatsappVerifiedAt: string | null;
+  /** true assim que algum PATCH já definiu primaryColorHex/buttonColorHex, mesmo que o valor coincida com o placeholder — nunca volta a false (spec 010 do vitrio-api). */
+  hasCustomColor: boolean;
   logoUrl: string | null;
   createdAt: string;
 };
-
-/** Placeholders neutros que o backend usa quando a revendedora nunca escolheu cor (`CatalogColorDefaults`, spec 002 do vitrio-api) — nunca nulos na resposta, mas também nunca uma escolha real da revendedora. */
-export const UNSET_CATALOG_COLORS = {
-  primaryColorHex: '#6D28D9',
-  buttonColorHex: '#059669',
-} as const;
 
 export type Catalog = {
   id: string;
@@ -24,6 +20,7 @@ export type Catalog = {
   slug: string;
   primaryColorHex: string | null;
   buttonColorHex: string | null;
+  hasCustomColor: boolean;
   instagramHandle: string | null;
   whatsappNumber: string | null;
   isWhatsappVerified: boolean;
@@ -38,6 +35,7 @@ export function toCatalog(body: CatalogResponseBody): Catalog {
     slug: body.slug,
     primaryColorHex: body.primaryColorHex,
     buttonColorHex: body.buttonColorHex,
+    hasCustomColor: body.hasCustomColor,
     instagramHandle: body.instagramHandle,
     whatsappNumber: body.whatsappNumber,
     isWhatsappVerified: body.whatsappVerificationStatus === 'VERIFIED',
