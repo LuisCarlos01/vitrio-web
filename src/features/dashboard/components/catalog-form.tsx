@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ColorPalettePicker } from './color-palette-picker';
+import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
 import { useCreateCatalog } from '../hooks/use-create-catalog';
 import { useUpdateCatalog } from '../hooks/use-update-catalog';
@@ -66,8 +66,10 @@ export function CatalogForm() {
     if (catalog) {
       reset({
         name: catalog.name,
-        primaryColorHex: catalog.primaryColorHex ?? '',
-        buttonColorHex: catalog.buttonColorHex ?? '',
+        primaryColorHex:
+          catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex,
+        buttonColorHex:
+          catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex,
         instagramHandle: catalog.instagramHandle ?? '',
       });
     }

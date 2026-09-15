@@ -103,6 +103,21 @@ describe('CatalogForm', () => {
     );
   });
 
+  it('defaults to the first curated palette when the catalog has no color set yet', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          { ...catalogDto, primaryColorHex: null, buttonColorHex: null },
+        ]),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByRole('radio', { name: /clássico/i }),
+    ).toBeChecked();
+  });
+
   it('shows an error message when the API rejects the update', async () => {
     server.use(
       http.patch(`${API_BASE_URL}/api/v1/catalogs/catalog-1`, () =>

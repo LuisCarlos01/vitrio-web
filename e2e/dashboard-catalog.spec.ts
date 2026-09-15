@@ -43,7 +43,11 @@ test('a reseller can pick a curated color palette and persist it', async ({
   await page.getByRole('button', { name: /criar loja/i }).click();
 
   await page.getByRole('radio', { name: /noturno/i }).click();
+  const updateResponse = page.waitForResponse(
+    (response) => response.request().method() === 'PATCH' && response.ok(),
+  );
   await page.getByRole('button', { name: /salvar dados da loja/i }).click();
+  await updateResponse;
 
   await expect(page.getByRole('radio', { name: /noturno/i })).toBeChecked();
 

@@ -111,7 +111,7 @@ export function ColorPalettePicker({
           <input
             id="custom-primary-color"
             type="color"
-            value={(primaryColorHex || '#000000').toLowerCase()}
+            value={primaryColorHex.toLowerCase()}
             onChange={(event) =>
               onChange({
                 primaryColorHex: event.target.value,
@@ -123,7 +123,7 @@ export function ColorPalettePicker({
           <input
             id="custom-button-color"
             type="color"
-            value={(buttonColorHex || '#000000').toLowerCase()}
+            value={buttonColorHex.toLowerCase()}
             onChange={(event) =>
               onChange({
                 primaryColorHex,
