@@ -11,6 +11,12 @@ type CatalogResponseBody = {
   createdAt: string;
 };
 
+/** Placeholders neutros que o backend usa quando a revendedora nunca escolheu cor (`CatalogColorDefaults`, spec 002 do vitrio-api) — nunca nulos na resposta, mas também nunca uma escolha real da revendedora. */
+export const UNSET_CATALOG_COLORS = {
+  primaryColorHex: '#6D28D9',
+  buttonColorHex: '#059669',
+} as const;
+
 export type Catalog = {
   id: string;
   name: string;

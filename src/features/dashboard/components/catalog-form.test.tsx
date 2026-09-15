@@ -155,6 +155,28 @@ describe('CatalogForm', () => {
     ).toBeChecked();
   });
 
+  it('treats the backend\'s neutral placeholder colors as "no color chosen yet"', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          {
+            ...catalogDto,
+            primaryColorHex: '#6D28D9',
+            buttonColorHex: '#059669',
+          },
+        ]),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByRole('radio', { name: /clássico/i }),
+    ).toBeChecked();
+    expect(
+      screen.queryByText(/pode ficar difícil de ler/i),
+    ).not.toBeInTheDocument();
+  });
+
   it('shows an error message when the API rejects the update', async () => {
     server.use(
       http.patch(`${API_BASE_URL}/api/v1/catalogs/catalog-1`, () =>
