@@ -405,4 +405,28 @@ describe('CatalogForm', () => {
 
     await waitFor(() => expect(saveButton).not.toBeDisabled());
   });
+
+  it('groups the form into "Identidade" and "Cor da loja" sections', async () => {
+    renderCatalogForm();
+
+    expect(
+      await screen.findByRole('heading', { name: /identidade/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /cor da loja/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('live-previews the "Falar no WhatsApp" button with the chosen color', async () => {
+    const user = userEvent.setup();
+    renderCatalogForm();
+
+    await screen.findByDisplayValue('Loja da Ana');
+    const preview = screen.getByText(/falar no whatsapp/i);
+    expect(preview).toHaveStyle({ backgroundColor: '#00ff00' });
+
+    await user.click(screen.getByRole('radio', { name: /noturno/i }));
+
+    expect(preview).toHaveStyle({ backgroundColor: '#f59e0b' });
+  });
 });

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { contrastTextColor } from '@/lib/color/contrast-text-color';
 import { contrastRatio, WCAG_AA_UI_RATIO } from '@/lib/color/wcag-contrast';
 import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
@@ -133,46 +134,63 @@ export function CatalogForm() {
         );
       })}
     >
-      <div>
-        <Label>Slug</Label>
-        <p>{catalog.slug}</p>
-      </div>
-      <div>
-        <Label htmlFor="name">Nome</Label>
-        <Input id="name" {...register('name')} />
-      </div>
-      <div>
-        {displayedLogoUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, mesmo padrão do storefront
-          <img src={displayedLogoUrl} alt="Logo atual" />
-        )}
-        <Label htmlFor="logo">Logo</Label>
-        <input
-          id="logo"
-          type="file"
-          accept="image/*"
-          onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
+      <section>
+        <h2>Identidade</h2>
+        <div>
+          <Label>Slug</Label>
+          <p>{catalog.slug}</p>
+        </div>
+        <div>
+          <Label htmlFor="name">Nome</Label>
+          <Input id="name" {...register('name')} />
+        </div>
+        <div>
+          {displayedLogoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, mesmo padrão do storefront
+            <img src={displayedLogoUrl} alt="Logo atual" />
+          )}
+          <Label htmlFor="logo">Logo</Label>
+          <input
+            id="logo"
+            type="file"
+            accept="image/*"
+            onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="instagramHandle">Instagram</Label>
+          <Input id="instagramHandle" {...register('instagramHandle')} />
+        </div>
+      </section>
+      <section>
+        <h2>Cor da loja</h2>
+        <ColorPalettePicker
+          primaryColorHex={primaryColorHex ?? ''}
+          buttonColorHex={buttonColorHex ?? ''}
+          onChange={(colors) => {
+            setValue('primaryColorHex', colors.primaryColorHex, {
+              shouldDirty: true,
+            });
+            setValue('buttonColorHex', colors.buttonColorHex, {
+              shouldDirty: true,
+            });
+          }}
         />
-      </div>
-      <ColorPalettePicker
-        primaryColorHex={primaryColorHex ?? ''}
-        buttonColorHex={buttonColorHex ?? ''}
-        onChange={(colors) => {
-          setValue('primaryColorHex', colors.primaryColorHex, {
-            shouldDirty: true,
-          });
-          setValue('buttonColorHex', colors.buttonColorHex, {
-            shouldDirty: true,
-          });
-        }}
-      />
-      {hasLowContrast && (
-        <p>Essa combinação de cores pode ficar difícil de ler.</p>
-      )}
-      <div>
-        <Label htmlFor="instagramHandle">Instagram</Label>
-        <Input id="instagramHandle" {...register('instagramHandle')} />
-      </div>
+        {hasLowContrast && (
+          <p>Essa combinação de cores pode ficar difícil de ler.</p>
+        )}
+        <div>
+          <p>Preview do botão da vitrine</p>
+          <span
+            style={{
+              backgroundColor: buttonColorHex,
+              color: contrastTextColor(buttonColorHex || '#000000'),
+            }}
+          >
+            Falar no WhatsApp
+          </span>
+        </div>
+      </section>
       {updateCatalog.isError && (
         <p>Não foi possível salvar. Tente novamente.</p>
       )}
