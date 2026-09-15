@@ -1,4 +1,4 @@
-function relativeLuminance(hex: string): number {
+export function relativeLuminance(hex: string): number {
   const normalized = hex.replace('#', '');
   const [r, g, b] = [0, 2, 4].map(
     (offset) => parseInt(normalized.slice(offset, offset + 2), 16) / 255,

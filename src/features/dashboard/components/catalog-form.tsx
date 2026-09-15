@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { contrastRatio, WCAG_AA_UI_RATIO } from '@/lib/color/wcag-contrast';
 import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
 import { useCreateCatalog } from '../hooks/use-create-catalog';
@@ -26,6 +27,8 @@ const catalogFormSchema = z.object({
 });
 
 type CatalogFormValues = z.infer<typeof catalogFormSchema>;
+
+const HEX_COLOR_REGEX = /^#[0-9A-Fa-f]{6}$/;
 
 const createCatalogSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -61,6 +64,10 @@ export function CatalogForm() {
     });
   const primaryColorHex = watch('primaryColorHex');
   const buttonColorHex = watch('buttonColorHex');
+  const hasLowContrast =
+    HEX_COLOR_REGEX.test(primaryColorHex ?? '') &&
+    HEX_COLOR_REGEX.test(buttonColorHex ?? '') &&
+    contrastRatio(primaryColorHex, buttonColorHex) < WCAG_AA_UI_RATIO;
 
   useEffect(() => {
     if (catalog) {
@@ -109,6 +116,9 @@ export function CatalogForm() {
           });
         }}
       />
+      {hasLowContrast && (
+        <p>Essa combinação de cores pode ficar difícil de ler.</p>
+      )}
       <div>
         <Label htmlFor="instagramHandle">Instagram</Label>
         <Input id="instagramHandle" {...register('instagramHandle')} />

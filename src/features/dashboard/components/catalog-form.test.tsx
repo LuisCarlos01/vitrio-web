@@ -103,6 +103,43 @@ describe('CatalogForm', () => {
     );
   });
 
+  it('warns about low contrast when the chosen palette is hard to read, without blocking submission', async () => {
+    server.use(
+      http.patch(`${API_BASE_URL}/api/v1/catalogs/catalog-1`, () =>
+        HttpResponse.json({
+          ...catalogDto,
+          primaryColorHex: '#DB2777',
+          buttonColorHex: '#7C3AED',
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    renderCatalogForm();
+
+    await screen.findByDisplayValue('Loja da Ana');
+    await user.click(screen.getByRole('radio', { name: /vibrante/i }));
+
+    expect(screen.getByText(/pode ficar difícil de ler/i)).toBeInTheDocument();
+
+    const saveButton = screen.getByRole('button', { name: /salvar/i });
+    expect(saveButton).not.toBeDisabled();
+    await user.click(saveButton);
+
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+  });
+
+  it('shows no contrast warning for a high-contrast curated palette', async () => {
+    const user = userEvent.setup();
+    renderCatalogForm();
+
+    await screen.findByDisplayValue('Loja da Ana');
+    await user.click(screen.getByRole('radio', { name: /noturno/i }));
+
+    expect(
+      screen.queryByText(/pode ficar difícil de ler/i),
+    ).not.toBeInTheDocument();
+  });
+
   it('defaults to the first curated palette when the catalog has no color set yet', async () => {
     server.use(
       http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
