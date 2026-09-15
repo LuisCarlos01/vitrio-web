@@ -69,6 +69,7 @@ test('a reseller sees a non-blocking contrast warning for a hard-to-read palette
   await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
   await page.getByRole('button', { name: /criar loja/i }).click();
 
+  await expect(page.getByRole('radio', { name: /clássico/i })).toBeChecked();
   await expect(page.getByText(/pode ficar difícil de ler/i)).not.toBeVisible();
 
   await page.getByRole('radio', { name: /vibrante/i }).click();

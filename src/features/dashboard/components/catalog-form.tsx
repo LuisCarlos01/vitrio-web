@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UNSET_CATALOG_COLORS } from '@/lib/api/adapters/catalog';
 import { contrastRatio, WCAG_AA_UI_RATIO } from '@/lib/color/wcag-contrast';
 import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
@@ -71,12 +72,24 @@ export function CatalogForm() {
 
   useEffect(() => {
     if (catalog) {
+      // só o par sentinela completo conta como "sem cor" — uma cor válida isolada
+      // (ex. resposta legada com só uma das duas nula) não pode ser descartada junto.
+      const hasUnsetColors =
+        catalog.primaryColorHex != null &&
+        catalog.buttonColorHex != null &&
+        catalog.primaryColorHex.toLowerCase() ===
+          UNSET_CATALOG_COLORS.primaryColorHex.toLowerCase() &&
+        catalog.buttonColorHex.toLowerCase() ===
+          UNSET_CATALOG_COLORS.buttonColorHex.toLowerCase();
+
       reset({
         name: catalog.name,
-        primaryColorHex:
-          catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex,
-        buttonColorHex:
-          catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex,
+        primaryColorHex: hasUnsetColors
+          ? CURATED_PALETTES[0].primaryColorHex
+          : (catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex),
+        buttonColorHex: hasUnsetColors
+          ? CURATED_PALETTES[0].buttonColorHex
+          : (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex),
         instagramHandle: catalog.instagramHandle ?? '',
       });
     }
