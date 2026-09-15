@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
 import { useCreateCatalog } from '../hooks/use-create-catalog';
 import { useUpdateCatalog } from '../hooks/use-update-catalog';
+import { useUploadAsset } from '../hooks/use-upload-asset';
 
 const catalogFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -59,6 +60,9 @@ function CreateCatalogForm() {
 export function CatalogForm() {
   const { data: catalog, isLoading } = useCatalog();
   const updateCatalog = useUpdateCatalog();
+  const uploadAsset = useUploadAsset();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
   const { register, handleSubmit, reset, watch, setValue } =
     useForm<CatalogFormValues>({
       resolver: zodResolver(catalogFormSchema),
@@ -92,8 +96,13 @@ export function CatalogForm() {
           : (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex),
         instagramHandle: catalog.instagramHandle ?? '',
       });
+      setUploadedLogoUrl(null);
+      setLogoFile(null);
     }
   }, [catalog, reset]);
+
+  const displayedLogoUrl = uploadedLogoUrl ?? catalog?.logoUrl ?? null;
+  const isSaving = uploadAsset.isPending || updateCatalog.isPending;
 
   if (isLoading) {
     return <p>Carregando...</p>;
@@ -105,9 +114,22 @@ export function CatalogForm() {
 
   return (
     <form
-      onSubmit={handleSubmit((values) =>
-        updateCatalog.mutate({ id: catalog.id, payload: values }),
-      )}
+      onSubmit={handleSubmit(async (values) => {
+        let logoAssetId: string | undefined;
+        if (logoFile) {
+          const asset = await uploadAsset.mutateAsync({
+            catalogId: catalog.id,
+            file: logoFile,
+          });
+          logoAssetId = asset.id;
+          setUploadedLogoUrl(asset.publicUrl);
+          setLogoFile(null);
+        }
+        updateCatalog.mutate({
+          id: catalog.id,
+          payload: { ...values, ...(logoAssetId ? { logoAssetId } : {}) },
+        });
+      })}
     >
       <div>
         <Label>Slug</Label>
@@ -116,6 +138,19 @@ export function CatalogForm() {
       <div>
         <Label htmlFor="name">Nome</Label>
         <Input id="name" {...register('name')} />
+      </div>
+      <div>
+        {displayedLogoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, mesmo padrão do storefront
+          <img src={displayedLogoUrl} alt="Logo atual" />
+        )}
+        <Label htmlFor="logo">Logo</Label>
+        <input
+          id="logo"
+          type="file"
+          accept="image/*"
+          onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
+        />
       </div>
       <ColorPalettePicker
         primaryColorHex={primaryColorHex ?? ''}
@@ -139,7 +174,7 @@ export function CatalogForm() {
       {updateCatalog.isError && (
         <p>Não foi possível salvar. Tente novamente.</p>
       )}
-      <Button type="submit" disabled={updateCatalog.isPending}>
+      <Button type="submit" disabled={isSaving}>
         Salvar dados da loja
       </Button>
     </form>

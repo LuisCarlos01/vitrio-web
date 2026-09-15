@@ -13,6 +13,7 @@ describe('toCatalog', () => {
       whatsappNumber: '+5511999999999',
       whatsappVerificationStatus: 'VERIFIED' as const,
       whatsappVerifiedAt: '2026-01-01T00:00:00Z',
+      logoUrl: 'https://cdn.example.com/logo.png',
       createdAt: '2025-12-01T00:00:00Z',
     };
 
@@ -26,6 +27,7 @@ describe('toCatalog', () => {
       whatsappNumber: '+5511999999999',
       isWhatsappVerified: true,
       whatsappVerifiedAt: '2026-01-01T00:00:00Z',
+      logoUrl: 'https://cdn.example.com/logo.png',
     });
   });
 
@@ -40,10 +42,12 @@ describe('toCatalog', () => {
       whatsappNumber: null,
       whatsappVerificationStatus: 'UNVERIFIED' as const,
       whatsappVerifiedAt: null,
+      logoUrl: null,
       createdAt: '2025-12-01T00:00:00Z',
     };
 
     expect(toCatalog(apiResponseBody).isWhatsappVerified).toBe(false);
     expect(toCatalog(apiResponseBody).whatsappVerifiedAt).toBeNull();
+    expect(toCatalog(apiResponseBody).logoUrl).toBeNull();
   });
 });

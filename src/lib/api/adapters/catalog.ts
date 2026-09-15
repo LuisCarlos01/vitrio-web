@@ -8,6 +8,7 @@ type CatalogResponseBody = {
   whatsappNumber: string | null;
   whatsappVerificationStatus: 'UNVERIFIED' | 'VERIFIED';
   whatsappVerifiedAt: string | null;
+  logoUrl: string | null;
   createdAt: string;
 };
 
@@ -27,6 +28,7 @@ export type Catalog = {
   whatsappNumber: string | null;
   isWhatsappVerified: boolean;
   whatsappVerifiedAt: string | null;
+  logoUrl: string | null;
 };
 
 export function toCatalog(body: CatalogResponseBody): Catalog {
@@ -40,5 +42,6 @@ export function toCatalog(body: CatalogResponseBody): Catalog {
     whatsappNumber: body.whatsappNumber,
     isWhatsappVerified: body.whatsappVerificationStatus === 'VERIFIED',
     whatsappVerifiedAt: body.whatsappVerifiedAt,
+    logoUrl: body.logoUrl,
   };
 }

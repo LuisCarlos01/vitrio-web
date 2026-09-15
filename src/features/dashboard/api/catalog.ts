@@ -22,6 +22,7 @@ type UpdateCatalogPayload = Partial<{
   primaryColorHex: string;
   buttonColorHex: string;
   instagramHandle: string;
+  logoAssetId: string;
 }>;
 
 export async function updateCatalog(
