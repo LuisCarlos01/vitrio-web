@@ -48,14 +48,25 @@ export function RegisterForm() {
     >
       <div>
         <Label htmlFor="email">E-mail</Label>
-        <Input id="email" type="email" {...registerField('email')} />
-        {errors.email && <p>{errors.email.message}</p>}
+        <Input
+          id="email"
+          type="email"
+          aria-invalid={errors.email ? true : undefined}
+          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...registerField('email')}
+        />
+        {errors.email && <p id="email-error">{errors.email.message}</p>}
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>
-        <PasswordInput id="password" {...registerField('password')} />
+        <PasswordInput
+          id="password"
+          aria-invalid={errors.password ? true : undefined}
+          aria-describedby={errors.password ? 'password-error' : undefined}
+          {...registerField('password')}
+        />
         {errors.password ? (
-          <p>{errors.password.message}</p>
+          <p id="password-error">{errors.password.message}</p>
         ) : (
           <p className="text-muted-foreground text-xs">
             Mínimo de 8 caracteres

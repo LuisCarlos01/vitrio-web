@@ -138,6 +138,30 @@ describe('RegisterForm', () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it('associates validation errors with their fields for screen readers', async () => {
+    const user = userEvent.setup();
+    renderRegisterForm();
+
+    await user.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    const emailInput = await screen.findByLabelText(/e-mail/i);
+    const passwordInput = screen.getByLabelText(/senha/i, {
+      selector: 'input',
+    });
+
+    expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+    expect(emailInput).toHaveAttribute('aria-describedby', 'email-error');
+    expect(passwordInput).toHaveAttribute('aria-invalid', 'true');
+    expect(passwordInput).toHaveAttribute('aria-describedby', 'password-error');
+    expect(screen.getByText(/e-mail inválido/i)).toHaveAttribute(
+      'id',
+      'email-error',
+    );
+    expect(
+      screen.getByText(/senha deve ter pelo menos 8 caracteres/i),
+    ).toHaveAttribute('id', 'password-error');
+  });
+
   it('shows a generic connection error and does not redirect when the request fails before reaching the API', async () => {
     server.use(
       http.post(`${API_BASE_URL}/api/v1/auth/register`, () =>
