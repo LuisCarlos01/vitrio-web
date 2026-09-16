@@ -1,9 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api/errors';
+import type { Category } from '@/lib/api/adapters/category';
 import type { Product } from '@/lib/api/adapters/product';
 import { useCategories } from '../hooks/use-categories';
 import { useCreateProduct } from '../hooks/use-create-product';
@@ -38,7 +40,13 @@ function createProductErrorMessage(error: unknown): string | null {
   return 'Não foi possível criar o produto. Tente novamente.';
 }
 
-function CreateProductForm({ catalogId }: { catalogId: string }) {
+function CreateProductForm({
+  catalogId,
+  onCreated,
+}: {
+  catalogId: string;
+  onCreated?: () => void;
+}) {
   const { data: categories } = useCategories(catalogId);
   const uploadAsset = useUploadAsset();
   const createProduct = useCreateProduct();
@@ -46,6 +54,7 @@ function CreateProductForm({ catalogId }: { catalogId: string }) {
   const { register, handleSubmit, reset } = useForm<CreateProductValues>({
     resolver: zodResolver(createProductSchema),
   });
+  const formId = useId();
 
   const isPending = uploadAsset.isPending || createProduct.isPending;
   const error = createProduct.error;
@@ -70,24 +79,25 @@ function CreateProductForm({ catalogId }: { catalogId: string }) {
             onSuccess: () => {
               reset();
               setFile(null);
+              onCreated?.();
             },
           },
         );
       })}
     >
-      <Label htmlFor="new-product-name">Nome</Label>
-      <Input id="new-product-name" {...register('name')} />
+      <Label htmlFor={`${formId}-name`}>Nome</Label>
+      <Input id={`${formId}-name`} {...register('name')} />
 
-      <Label htmlFor="new-product-sku">SKU</Label>
-      <Input id="new-product-sku" {...register('sku')} />
+      <Label htmlFor={`${formId}-sku`}>SKU</Label>
+      <Input id={`${formId}-sku`} {...register('sku')} />
 
-      <Label htmlFor="new-product-description">Descrição</Label>
-      <Input id="new-product-description" {...register('description')} />
+      <Label htmlFor={`${formId}-description`}>Descrição</Label>
+      <Input id={`${formId}-description`} {...register('description')} />
 
       {categories && categories.length > 0 && (
         <>
-          <Label htmlFor="new-product-category">Categoria</Label>
-          <select id="new-product-category" {...register('categoryId')}>
+          <Label htmlFor={`${formId}-category`}>Categoria</Label>
+          <select id={`${formId}-category`} {...register('categoryId')}>
             <option value="">Sem categoria</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -98,9 +108,9 @@ function CreateProductForm({ catalogId }: { catalogId: string }) {
         </>
       )}
 
-      <Label htmlFor="new-product-image">Imagem</Label>
+      <Label htmlFor={`${formId}-image`}>Imagem</Label>
       <input
-        id="new-product-image"
+        id={`${formId}-image`}
         type="file"
         accept="image/*"
         onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -255,32 +265,45 @@ function DeleteProductDialog({
 function ProductRow({
   catalogId,
   product,
+  categoryName,
 }: {
   catalogId: string;
   product: Product;
+  categoryName: string | null;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const outOfStock = product.quantityAvailable === 0 || !product.isOrderable;
 
   return (
-    <li>
+    <li className="border-border grid gap-1 border-b py-2 md:grid-cols-[2fr_1fr_1fr_1fr_2fr_auto] md:items-center md:gap-2">
       <span>{product.name}</span>
-      {outOfStock && <span>Sem estoque</span>}
-      {!product.isVisible && <span>Não visível</span>}
-      {!product.isActive && <span>Inativo</span>}
-      <Button
-        aria-label={`Editar ${product.name}`}
-        onClick={() => setEditOpen(true)}
-      >
-        Editar
-      </Button>
-      <Button
-        aria-label={`Excluir ${product.name}`}
-        onClick={() => setDeleteOpen(true)}
-      >
-        Excluir
-      </Button>
+      <span>{product.sku}</span>
+      <span>{categoryName}</span>
+      <span>{product.quantityAvailable}</span>
+      <span className="flex flex-wrap gap-1">
+        <Badge variant={product.isActive ? 'outline' : 'secondary'}>
+          {product.isActive ? 'Ativo' : 'Inativo'}
+        </Badge>
+        <Badge variant={product.isVisible ? 'outline' : 'secondary'}>
+          {product.isVisible ? 'Visível' : 'Oculto'}
+        </Badge>
+        {outOfStock && <Badge variant="destructive">Sem estoque</Badge>}
+      </span>
+      <span className="flex gap-1">
+        <Button
+          aria-label={`Editar ${product.name}`}
+          onClick={() => setEditOpen(true)}
+        >
+          Editar
+        </Button>
+        <Button
+          aria-label={`Excluir ${product.name}`}
+          onClick={() => setDeleteOpen(true)}
+        >
+          Excluir
+        </Button>
+      </span>
       <EditProductDialog
         catalogId={catalogId}
         product={product}
@@ -297,8 +320,45 @@ function ProductRow({
   );
 }
 
+function CreateProductSection({ catalogId }: { catalogId: string }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      <div className="hidden md:block">
+        <CreateProductForm catalogId={catalogId} />
+      </div>
+      <Button
+        className="fixed right-4 bottom-20 rounded-full md:hidden"
+        aria-label="Novo produto"
+        onClick={() => setMobileOpen(true)}
+      >
+        +
+      </Button>
+      <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar produto</DialogTitle>
+          </DialogHeader>
+          <CreateProductForm
+            catalogId={catalogId}
+            onCreated={() => setMobileOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export function ProductList({ catalogId }: { catalogId: string }) {
   const { data: products, isLoading } = useProducts(catalogId);
+  const { data: categories } = useCategories(catalogId);
+  const categoryNameById = new Map(
+    (categories ?? []).map((category: Category) => [
+      category.id,
+      category.name,
+    ]),
+  );
 
   if (isLoading) {
     return <p>Carregando...</p>;
@@ -313,13 +373,18 @@ export function ProductList({ catalogId }: { catalogId: string }) {
               key={product.id}
               catalogId={catalogId}
               product={product}
+              categoryName={
+                product.categoryId
+                  ? (categoryNameById.get(product.categoryId) ?? null)
+                  : null
+              }
             />
           ))}
         </ul>
       ) : (
         <p>Nenhum produto cadastrado ainda.</p>
       )}
-      <CreateProductForm catalogId={catalogId} />
+      <CreateProductSection catalogId={catalogId} />
     </div>
   );
 }
