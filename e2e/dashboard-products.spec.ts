@@ -50,9 +50,39 @@ test('a reseller can create a product, edit its stock/visibility, and delete it'
   await expect(page.getByLabel(/disponível para compra/i)).not.toBeChecked();
   await page.getByLabel(/^ativo$/i).check();
   await page.getByRole('button', { name: /salvar produto/i }).click();
-  await expect(page.getByText('Não visível')).toBeVisible();
+  await expect(page.getByText('Oculto')).toBeVisible();
 
   await page.getByRole('button', { name: /excluir perfume x/i }).click();
   await page.getByRole('button', { name: /confirmar exclusão/i }).click();
   await expect(page.getByRole('listitem')).toHaveCount(0);
+});
+
+test('a reseller adds a product through the mobile FAB', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await page.goto('/register');
+  await page.getByLabel(/e-mail/i).fill(uniqueEmail());
+  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByRole('button', { name: /criar conta/i }).click();
+  await page.waitForURL('/dashboard');
+
+  await page.goto('/store');
+  await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+  await page.getByRole('button', { name: /criar loja/i }).click();
+
+  await page.goto('/products');
+
+  // No mobile, o formulário inline (desktop) fica display:none — só o FAB abre.
+  await expect(page.getByLabel(/^nome$/i)).not.toBeVisible();
+  await page.getByRole('button', { name: /novo produto/i }).click();
+
+  const dialog = page.getByRole('dialog', { name: /adicionar produto/i });
+  await dialog.getByLabel(/^nome$/i).fill('Batom Y');
+  await dialog
+    .getByLabel(/imagem/i)
+    .setInputFiles(path.join(__dirname, 'fixtures', 'product.png'));
+  await dialog.getByRole('button', { name: /adicionar produto/i }).click();
+
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByText('Batom Y')).toBeVisible();
 });
