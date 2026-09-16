@@ -51,7 +51,10 @@ describe('LoginForm', () => {
     renderLoginForm();
 
     await user.type(screen.getByLabelText(/e-mail/i), 'reseller@example.com');
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse',
+    );
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'));
@@ -67,7 +70,10 @@ describe('LoginForm', () => {
     renderLoginForm();
 
     await user.type(screen.getByLabelText(/e-mail/i), 'reseller@example.com');
-    await user.type(screen.getByLabelText(/senha/i), 'wrong-password');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'wrong-password',
+    );
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     expect(
@@ -86,7 +92,10 @@ describe('LoginForm', () => {
     renderLoginForm();
 
     await user.type(screen.getByLabelText(/e-mail/i), 'reseller@example.com');
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse',
+    );
     await user.click(screen.getByRole('button', { name: /entrar/i }));
 
     expect(await screen.findByText(/muitas tentativas/i)).toBeInTheDocument();
@@ -104,7 +113,10 @@ describe('LoginForm', () => {
     renderLoginForm();
 
     await user.type(screen.getByLabelText(/e-mail/i), 'reseller@example.com');
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse',
+    );
     const submitButton = screen.getByRole('button', { name: /entrar/i });
     await user.click(submitButton);
 

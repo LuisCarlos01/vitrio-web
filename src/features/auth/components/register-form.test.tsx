@@ -27,6 +27,12 @@ describe('RegisterForm', () => {
     pushMock.mockClear();
   });
 
+  it('shows a hint with the minimum password length before any error', () => {
+    renderRegisterForm();
+
+    expect(screen.getByText(/mínimo de 8 caracteres/i)).toBeInTheDocument();
+  });
+
   it('shows validation errors and never calls the API when the form is submitted empty', async () => {
     const user = userEvent.setup();
     renderRegisterForm();
@@ -51,7 +57,10 @@ describe('RegisterForm', () => {
       screen.getByLabelText(/e-mail/i),
       'new-reseller@example.com',
     );
-    await user.type(screen.getByLabelText(/senha/i), 'short1');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'short1',
+    );
     await user.click(screen.getByRole('button', { name: /criar conta/i }));
 
     expect(
@@ -72,7 +81,10 @@ describe('RegisterForm', () => {
       screen.getByLabelText(/e-mail/i),
       'new-reseller@example.com',
     );
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse-battery');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse-battery',
+    );
     await user.click(screen.getByRole('button', { name: /criar conta/i }));
 
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/dashboard'));
@@ -91,7 +103,10 @@ describe('RegisterForm', () => {
     renderRegisterForm();
 
     await user.type(screen.getByLabelText(/e-mail/i), 'existing@example.com');
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse-battery');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse-battery',
+    );
     await user.click(screen.getByRole('button', { name: /criar conta/i }));
 
     expect(
@@ -113,7 +128,10 @@ describe('RegisterForm', () => {
       screen.getByLabelText(/e-mail/i),
       'new-reseller@example.com',
     );
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse-battery');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse-battery',
+    );
     await user.click(screen.getByRole('button', { name: /criar conta/i }));
 
     expect(await screen.findByText(/muitas tentativas/i)).toBeInTheDocument();
@@ -134,7 +152,10 @@ describe('RegisterForm', () => {
       screen.getByLabelText(/e-mail/i),
       'new-reseller@example.com',
     );
-    await user.type(screen.getByLabelText(/senha/i), 'correct-horse-battery');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse-battery',
+    );
     const submitButton = screen.getByRole('button', { name: /criar conta/i });
     await user.click(submitButton);
 

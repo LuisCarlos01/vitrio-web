@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { ApiError } from '@/lib/api/errors';
 import { useLogin } from '../hooks/use-login';
 
@@ -49,7 +50,7 @@ export function LoginForm() {
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>
-        <Input id="password" type="password" {...register('password')} />
+        <PasswordInput id="password" {...register('password')} />
         {errors.password && <p>{errors.password.message}</p>}
       </div>
       {loginErrorMessage(login.error) && (

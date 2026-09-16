@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { ApiError } from '@/lib/api/errors';
 import { useRegister } from '../hooks/use-register';
 
@@ -49,8 +50,14 @@ export function RegisterForm() {
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>
-        <Input id="password" type="password" {...registerField('password')} />
-        {errors.password && <p>{errors.password.message}</p>}
+        <PasswordInput id="password" {...registerField('password')} />
+        {errors.password ? (
+          <p>{errors.password.message}</p>
+        ) : (
+          <p className="text-muted-foreground text-xs">
+            Mínimo de 8 caracteres
+          </p>
+        )}
       </div>
       {registerErrorMessage(registerMutation.error) && (
         <p role="alert">{registerErrorMessage(registerMutation.error)}</p>
