@@ -9,7 +9,7 @@ test('a reseller can navigate the dashboard via the persistent sidebar', async (
 }) => {
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
@@ -34,7 +34,7 @@ test('a reseller can navigate the dashboard via the persistent sidebar', async (
 test('the sidebar collapses to icon-only and back', async ({ page }) => {
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
@@ -57,7 +57,7 @@ test('shows the bottom tab bar instead of the sidebar on a mobile viewport', asy
 
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 

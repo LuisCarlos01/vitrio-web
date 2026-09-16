@@ -9,7 +9,7 @@ test('a reseller can preview a CSV and confirm the import', async ({
 }) => {
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
