@@ -74,6 +74,41 @@ describe('CsvImportForm', () => {
     ).toBeEnabled();
   });
 
+  it('translates the API validation errors to pt-BR, falling back to the original text when unmapped', async () => {
+    server.use(
+      http.post(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/import/preview`,
+        () =>
+          HttpResponse.json({
+            rows: [
+              {
+                lineNumber: 3,
+                name: '',
+                sku: null,
+                description: null,
+                imageUrl: '',
+                errors: ['name is required', 'a brand new unmapped error'],
+              },
+            ],
+          }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderCsvImportForm();
+
+    const file = new File(
+      ['nome,codigo,descricao,imagem\n,,,\n'],
+      'produtos.csv',
+      { type: 'text/csv' },
+    );
+    await user.upload(screen.getByLabelText(/arquivo csv/i), file);
+    await user.click(screen.getByRole('button', { name: /pré-visualizar/i }));
+
+    expect(await screen.findByText('Nome é obrigatório')).toBeInTheDocument();
+    expect(screen.getByText('a brand new unmapped error')).toBeInTheDocument();
+  });
+
   it('confirms the import and shows which rows were created', async () => {
     server.use(
       http.post(
