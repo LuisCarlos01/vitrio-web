@@ -19,7 +19,10 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 function loginErrorMessage(error: unknown): string | null {
-  if (!(error instanceof ApiError)) return null;
+  if (!error) return null;
+  if (!(error instanceof ApiError)) {
+    return 'Não foi possível conectar. Verifique sua internet e tente novamente.';
+  }
   if (error.status === 401) return 'E-mail ou senha inválidos.';
   if (error.status === 429)
     return 'Muitas tentativas. Aguarde um instante e tente novamente.';
