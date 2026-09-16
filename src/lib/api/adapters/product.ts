@@ -4,7 +4,7 @@ type ProductResponseBody = {
   name: string;
   sku: string | null;
   description: string | null;
-  imageAssetId: string;
+  imageUrl: string | null;
   categoryId: string | null;
   quantityAvailable: number;
   isVisible: boolean;
@@ -18,7 +18,7 @@ export type Product = {
   name: string;
   sku: string | null;
   description: string | null;
-  imageAssetId: string;
+  imageUrl: string | null;
   categoryId: string | null;
   quantityAvailable: number;
   isVisible: boolean;
@@ -33,7 +33,7 @@ export function toProduct(body: ProductResponseBody): Product {
     name: body.name,
     sku: body.sku,
     description: body.description,
-    imageAssetId: body.imageAssetId,
+    imageUrl: body.imageUrl,
     categoryId: body.categoryId,
     quantityAvailable: body.quantityAvailable,
     isVisible: body.isVisible,

@@ -43,9 +43,7 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
   const latestImport = latestImportQuery.data ?? null;
 
   const activeProducts = products.filter((product) => product.isActive);
-  const productsWithoutPhoto = products.filter(
-    (product) => !product.imageAssetId,
-  );
+  const productsWithoutPhoto = products.filter((product) => !product.imageUrl);
   const categoryNameById = new Map(
     categories.map((category) => [category.id, category.name]),
   );

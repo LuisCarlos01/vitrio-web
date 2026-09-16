@@ -24,6 +24,7 @@ import { useDeleteProduct } from '../hooks/use-delete-product';
 import { useProducts } from '../hooks/use-products';
 import { useUpdateProduct } from '../hooks/use-update-product';
 import { useUploadAsset } from '../hooks/use-upload-asset';
+import { ProductPhotoViewer } from './product-photo-viewer';
 
 const createProductSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -273,10 +274,21 @@ function ProductRow({
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
   const outOfStock = product.quantityAvailable === 0 || !product.isOrderable;
 
   return (
-    <li className="border-border grid gap-1 border-b py-2 md:grid-cols-[2fr_1fr_1fr_1fr_2fr_auto] md:items-center md:gap-2">
+    <li className="border-border grid gap-1 border-b py-2 md:grid-cols-[auto_2fr_1fr_1fr_1fr_2fr_auto] md:items-center md:gap-2">
+      {product.imageUrl && (
+        <button
+          type="button"
+          aria-label={`Ver foto de ${product.name}`}
+          onClick={() => setPhotoOpen(true)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- foto vem de um host externo (S3) por produto, mesmo padrão do storefront */}
+          <img src={product.imageUrl} alt="" className="size-10 object-cover" />
+        </button>
+      )}
       <span>{product.name}</span>
       <span>{product.sku}</span>
       <span>{categoryName}</span>
@@ -315,6 +327,11 @@ function ProductRow({
         product={product}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
+      />
+      <ProductPhotoViewer
+        product={product}
+        open={photoOpen}
+        onOpenChange={setPhotoOpen}
       />
     </li>
   );

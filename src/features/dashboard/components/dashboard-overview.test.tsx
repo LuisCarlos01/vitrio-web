@@ -34,7 +34,7 @@ function rawProduct(overrides: Record<string, unknown> = {}) {
     name: 'Eggeo Blossom',
     sku: 'EGG-01',
     description: null,
-    imageAssetId: 'asset-1',
+    imageUrl: 'https://cdn.example.com/asset-1.png',
     categoryId: 'cat-1',
     quantityAvailable: 5,
     isVisible: true,

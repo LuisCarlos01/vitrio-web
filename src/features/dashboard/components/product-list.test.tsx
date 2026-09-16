@@ -14,7 +14,7 @@ type RawProduct = {
   name: string;
   sku: string | null;
   description: string | null;
-  imageAssetId: string;
+  imageUrl: string | null;
   categoryId: string | null;
   quantityAvailable: number;
   isVisible: boolean;
@@ -69,7 +69,7 @@ function rawProduct(overrides: Partial<RawProduct> = {}): RawProduct {
     name: 'Perfume X',
     sku: null,
     description: null,
-    imageAssetId: 'asset1',
+    imageUrl: 'https://cdn.example.com/asset1.png',
     categoryId: null,
     quantityAvailable: 3,
     isVisible: true,
@@ -99,7 +99,7 @@ describe('ProductList', () => {
               name: 'Perfume X',
               sku: 'PRF-001',
               description: null,
-              imageAssetId: 'asset1',
+              imageUrl: 'https://cdn.example.com/asset1.png',
               categoryId: null,
               quantityAvailable: 0,
               isVisible: true,
@@ -124,7 +124,7 @@ describe('ProductList', () => {
       name: 'Perfume X',
       sku: null,
       description: null,
-      imageAssetId: 'asset1',
+      imageUrl: 'https://cdn.example.com/asset1.png',
       categoryId: null,
       quantityAvailable: 3,
       isVisible: false,
@@ -276,5 +276,34 @@ describe('ProductList', () => {
         screen.queryByRole('dialog', { name: /adicionar produto/i }),
       ).not.toBeInTheDocument(),
     );
+  });
+
+  it('opens the photo viewer when clicking a product photo', async () => {
+    mockProducts([
+      rawProduct({ imageUrl: 'https://cdn.example.com/perfume.png' }),
+    ]);
+    const user = userEvent.setup();
+    renderProductList();
+
+    await screen.findByText('Perfume X');
+    await user.click(
+      screen.getByRole('button', { name: /ver foto de perfume x/i }),
+    );
+
+    expect(
+      within(screen.getByTestId('product-photo-modal')).getByAltText(
+        'Perfume X',
+      ),
+    ).toHaveAttribute('src', 'https://cdn.example.com/perfume.png');
+  });
+
+  it('has no photo button for a product without a resolved image', async () => {
+    mockProducts([rawProduct({ imageUrl: null })]);
+    renderProductList();
+
+    await screen.findByText('Perfume X');
+    expect(
+      screen.queryByRole('button', { name: /ver foto de perfume x/i }),
+    ).not.toBeInTheDocument();
   });
 });

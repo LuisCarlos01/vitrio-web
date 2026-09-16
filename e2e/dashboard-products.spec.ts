@@ -86,3 +86,29 @@ test('a reseller adds a product through the mobile FAB', async ({ page }) => {
   await expect(dialog).not.toBeVisible();
   await expect(page.getByText('Batom Y')).toBeVisible();
 });
+
+test('a reseller opens the photo viewer for a product', async ({ page }) => {
+  await page.goto('/register');
+  await page.getByLabel(/e-mail/i).fill(uniqueEmail());
+  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByRole('button', { name: /criar conta/i }).click();
+  await page.waitForURL('/dashboard');
+
+  await page.goto('/store');
+  await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+  await page.getByRole('button', { name: /criar loja/i }).click();
+
+  await page.goto('/products');
+
+  await page.getByLabel(/^nome$/i).fill('Perfume X');
+  await page
+    .getByLabel(/imagem/i)
+    .setInputFiles(path.join(__dirname, 'fixtures', 'product.png'));
+  await page.getByRole('button', { name: /adicionar produto/i }).click();
+  await expect(page.getByText('Perfume X')).toBeVisible();
+
+  await page.getByRole('button', { name: /ver foto de perfume x/i }).click();
+
+  const modal = page.getByTestId('product-photo-modal');
+  await expect(modal.locator('img')).toBeVisible();
+});

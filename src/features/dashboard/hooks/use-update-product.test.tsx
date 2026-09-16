@@ -29,7 +29,7 @@ describe('useUpdateProduct', () => {
             name: 'Perfume X',
             sku: null,
             description: null,
-            imageAssetId: 'asset1',
+            imageUrl: 'https://cdn.example.com/asset1.png',
             categoryId: null,
             quantityAvailable: 0,
             isVisible: false,
