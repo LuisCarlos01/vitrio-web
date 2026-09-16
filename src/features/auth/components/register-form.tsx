@@ -19,7 +19,10 @@ const registerSchema = z.object({
 type RegisterValues = z.infer<typeof registerSchema>;
 
 function registerErrorMessage(error: unknown): string | null {
-  if (!(error instanceof ApiError)) return null;
+  if (!error) return null;
+  if (!(error instanceof ApiError)) {
+    return 'Não foi possível conectar. Verifique sua internet e tente novamente.';
+  }
   if (error.status === 409) return 'Este e-mail já está cadastrado.';
   if (error.status === 429)
     return 'Muitas tentativas. Aguarde um instante e tente novamente.';

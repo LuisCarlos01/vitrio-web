@@ -138,6 +138,31 @@ describe('RegisterForm', () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it('shows a generic connection error and does not redirect when the request fails before reaching the API', async () => {
+    server.use(
+      http.post(`${API_BASE_URL}/api/v1/auth/register`, () =>
+        HttpResponse.error(),
+      ),
+    );
+    const user = userEvent.setup();
+    renderRegisterForm();
+
+    await user.type(
+      screen.getByLabelText(/e-mail/i),
+      'new-reseller@example.com',
+    );
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse-battery',
+    );
+    await user.click(screen.getByRole('button', { name: /criar conta/i }));
+
+    expect(
+      await screen.findByText(/não foi possível conectar/i),
+    ).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
   it('disables the submit button while the register request is in flight', async () => {
     server.use(
       http.post(`${API_BASE_URL}/api/v1/auth/register`, async () => {

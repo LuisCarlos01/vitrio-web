@@ -102,6 +102,28 @@ describe('LoginForm', () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
 
+  it('shows a generic connection error and does not redirect when the request fails before reaching the API', async () => {
+    server.use(
+      http.post(`${API_BASE_URL}/api/v1/auth/login`, () =>
+        HttpResponse.error(),
+      ),
+    );
+    const user = userEvent.setup();
+    renderLoginForm();
+
+    await user.type(screen.getByLabelText(/e-mail/i), 'reseller@example.com');
+    await user.type(
+      screen.getByLabelText(/senha/i, { selector: 'input' }),
+      'correct-horse',
+    );
+    await user.click(screen.getByRole('button', { name: /entrar/i }));
+
+    expect(
+      await screen.findByText(/não foi possível conectar/i),
+    ).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
   it('disables the submit button while the login request is in flight', async () => {
     server.use(
       http.post(`${API_BASE_URL}/api/v1/auth/login`, async () => {
