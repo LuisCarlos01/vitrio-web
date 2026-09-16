@@ -1,5 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { toConfirmRow, toPreviewRow } from './csv-import';
+import {
+  toConfirmRow,
+  toPreviewRow,
+  translateCsvImportError,
+} from './csv-import';
+
+describe('translateCsvImportError', () => {
+  it('translates a known API error message to pt-BR', () => {
+    expect(translateCsvImportError('name is required')).toBe(
+      'Nome é obrigatório',
+    );
+    expect(translateCsvImportError('could not download image from URL')).toBe(
+      'Não foi possível baixar a imagem da URL informada',
+    );
+  });
+
+  it('falls back to the original text for an unmapped message', () => {
+    expect(translateCsvImportError('some new error from the API')).toBe(
+      'some new error from the API',
+    );
+  });
+});
 
 describe('toPreviewRow', () => {
   it('maps a valid row (no errors)', () => {

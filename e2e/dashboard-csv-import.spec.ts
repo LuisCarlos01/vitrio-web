@@ -33,10 +33,10 @@ test('a reseller can preview a CSV and confirm the import', async ({
 
   // A primeira linha de dados é estruturalmente válida (nome + URL bem
   // formada) — a prévia não baixa a imagem, só valida formato. A segunda não
-  // tem nome nem imagem. Mensagens de erro vêm cruas da API, em inglês (não
-  // há camada de tradução — ver nota no relatório da feature).
+  // tem nome nem imagem; a API responde em inglês ("name is required"), mas o
+  // frontend traduz o conjunto fechado de mensagens conhecidas pra pt-BR.
   await expect(page.getByText('Perfume Válido')).toBeVisible();
-  await expect(page.getByText(/name is required/i)).toBeVisible();
+  await expect(page.getByText(/nome é obrigatório/i)).toBeVisible();
 
   await page.getByRole('button', { name: /confirmar importação/i }).click();
 
