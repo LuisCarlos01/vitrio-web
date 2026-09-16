@@ -48,13 +48,26 @@ export function LoginForm() {
     >
       <div>
         <Label htmlFor="email">E-mail</Label>
-        <Input id="email" type="email" {...register('email')} />
-        {errors.email && <p>{errors.email.message}</p>}
+        <Input
+          id="email"
+          type="email"
+          aria-invalid={errors.email ? true : undefined}
+          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...register('email')}
+        />
+        {errors.email && <p id="email-error">{errors.email.message}</p>}
       </div>
       <div>
         <Label htmlFor="password">Senha</Label>
-        <PasswordInput id="password" {...register('password')} />
-        {errors.password && <p>{errors.password.message}</p>}
+        <PasswordInput
+          id="password"
+          aria-invalid={errors.password ? true : undefined}
+          aria-describedby={errors.password ? 'password-error' : undefined}
+          {...register('password')}
+        />
+        {errors.password && (
+          <p id="password-error">{errors.password.message}</p>
+        )}
       </div>
       {loginErrorMessage(login.error) && (
         <p role="alert">{loginErrorMessage(login.error)}</p>
