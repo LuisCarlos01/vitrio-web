@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { WhatsappFloatingButton } from '@/features/catalog/components/whatsapp-floating-button';
+import { resolveButtonColorHex } from '../lib/catalog-colors';
 import { useCatalog } from '../hooks/use-catalog';
 import { useUpdateWhatsapp } from '../hooks/use-update-whatsapp';
 import { useVerifyWhatsapp } from '../hooks/use-verify-whatsapp';
@@ -71,6 +73,13 @@ export function WhatsappForm() {
           )}
         </>
       )}
+      <div>
+        <p>Preview do botão pra sua vitrine</p>
+        <WhatsappFloatingButton
+          whatsappNumber={catalog.whatsappNumber}
+          buttonColorHex={resolveButtonColorHex(catalog)}
+        />
+      </div>
     </div>
   );
 }

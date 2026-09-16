@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { contrastTextColor } from '@/lib/color/contrast-text-color';
 import { contrastRatio, WCAG_AA_UI_RATIO } from '@/lib/color/wcag-contrast';
+import { resolveButtonColorHex } from '../lib/catalog-colors';
 import { CURATED_PALETTES, ColorPalettePicker } from './color-palette-picker';
 import { useCatalog } from '../hooks/use-catalog';
 import { useCreateCatalog } from '../hooks/use-create-catalog';
@@ -89,9 +90,7 @@ export function CatalogForm() {
         primaryColorHex: catalog.hasCustomColor
           ? (catalog.primaryColorHex ?? CURATED_PALETTES[0].primaryColorHex)
           : CURATED_PALETTES[0].primaryColorHex,
-        buttonColorHex: catalog.hasCustomColor
-          ? (catalog.buttonColorHex ?? CURATED_PALETTES[0].buttonColorHex)
-          : CURATED_PALETTES[0].buttonColorHex,
+        buttonColorHex: resolveButtonColorHex(catalog),
         instagramHandle: catalog.instagramHandle ?? '',
       });
       setUploadedLogoUrl(null);
