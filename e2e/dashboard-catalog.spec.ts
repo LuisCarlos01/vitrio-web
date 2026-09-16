@@ -127,3 +127,24 @@ test('a reseller can upload a logo and see it persist after reload', async ({
 
   await expect(page.getByAltText(/logo atual/i)).toBeVisible();
 });
+
+test('the WhatsApp button preview updates live as the reseller picks a palette', async ({
+  page,
+}) => {
+  await page.goto('/register');
+  await page.getByLabel(/e-mail/i).fill(uniqueEmail());
+  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByRole('button', { name: /criar conta/i }).click();
+  await page.waitForURL('/dashboard');
+
+  await page.goto('/store');
+  await page.getByLabel(/nome da sua loja/i).fill('Loja da Ana');
+  await page.getByRole('button', { name: /criar loja/i }).click();
+
+  const preview = page.getByText(/falar no whatsapp/i);
+  await expect(preview).toHaveCSS('background-color', 'rgb(184, 134, 11)'); // Clássico, #B8860B
+
+  await page.getByRole('radio', { name: /noturno/i }).click();
+
+  await expect(preview).toHaveCSS('background-color', 'rgb(245, 158, 11)'); // Noturno, #F59E0B
+});
