@@ -44,6 +44,11 @@ jobs:
             echo "AWS_S3_ACCESS_KEY_ID=test"
             echo "AWS_S3_SECRET_ACCESS_KEY=test"
             echo "AWS_S3_BUCKET_NAME=vitrio-web-ci"
+            # A suíte e2e registra uma conta por teste (18 registros e mais
+            # conforme a suíte cresce) rodando sequencialmente em bem menos de
+            # 60s no CI — o limite de produção (10/60s por IP) derruba testes
+            # legítimos aqui, não é o cenário de abuso que ele existe pra pegar.
+            echo "VITRIO_RATE_LIMIT_REGISTER_CAPACITY=30"
           } >> .env
           docker compose up -d --build
           for i in $(seq 1 90); do
