@@ -15,6 +15,7 @@ function catalogDto(overrides: Partial<Record<string, unknown>> = {}) {
     slug: 'loja-da-ana',
     primaryColorHex: null,
     buttonColorHex: null,
+    hasCustomColor: false,
     instagramHandle: null,
     whatsappNumber: null,
     whatsappVerificationStatus: 'UNVERIFIED' as const,
@@ -143,6 +144,40 @@ describe('WhatsappForm', () => {
     expect(
       await screen.findByText(/não foi possível salvar/i),
     ).toBeInTheDocument();
+  });
+
+  it('shows a preview of the WhatsApp button with the store button color', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([
+          catalogDto({
+            whatsappNumber: '5511912345678',
+            buttonColorHex: '#3B82F6',
+            hasCustomColor: true,
+          }),
+        ]),
+      ),
+    );
+    renderWhatsappForm();
+
+    const preview = await screen.findByRole('link', {
+      name: /falar no whatsapp/i,
+    });
+    expect(preview.style.backgroundColor).toBe('rgb(59, 130, 246)');
+  });
+
+  it('falls back to the curated default color in the preview when the store has none yet', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([catalogDto({ whatsappNumber: '5511912345678' })]),
+      ),
+    );
+    renderWhatsappForm();
+
+    const preview = await screen.findByRole('link', {
+      name: /falar no whatsapp/i,
+    });
+    expect(preview.style.backgroundColor).toBe('rgb(184, 134, 11)');
   });
 
   it('marks the number as verified after clicking verify', async () => {
