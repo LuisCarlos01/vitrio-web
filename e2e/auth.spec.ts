@@ -13,7 +13,9 @@ test.describe('auth', () => {
     await page.goto('/register');
 
     await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-    await page.getByLabel(/senha/i).fill('correct-horse-battery');
+    await page
+      .getByLabel('Senha', { exact: true })
+      .fill('correct-horse-battery');
     await page.getByRole('button', { name: /criar conta/i }).click();
 
     // A rota /dashboard ainda não tem página própria (feature futura); o que
@@ -38,7 +40,7 @@ test.describe('auth', () => {
     await page.goto('/login');
 
     await page.getByLabel(/e-mail/i).fill(email);
-    await page.getByLabel(/senha/i).fill(password);
+    await page.getByLabel('Senha', { exact: true }).fill(password);
     await page.getByRole('button', { name: /entrar/i }).click();
 
     await page.waitForURL('/dashboard');

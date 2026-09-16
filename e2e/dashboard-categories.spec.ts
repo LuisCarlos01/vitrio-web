@@ -10,7 +10,7 @@ test('a reseller can create, rename, and delete a category', async ({
 }) => {
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
@@ -48,7 +48,7 @@ test('shows the product count per category and warns before deleting one', async
 
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
@@ -87,7 +87,7 @@ test('links back to Produtos on mobile, since Categorias has no bottom-tab entry
 
   await page.goto('/register');
   await page.getByLabel(/e-mail/i).fill(uniqueEmail());
-  await page.getByLabel(/senha/i).fill('correct-horse-battery');
+  await page.getByLabel('Senha', { exact: true }).fill('correct-horse-battery');
   await page.getByRole('button', { name: /criar conta/i }).click();
   await page.waitForURL('/dashboard');
 
