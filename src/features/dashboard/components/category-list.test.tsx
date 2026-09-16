@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -17,11 +17,20 @@ function renderCategoryList() {
   );
 }
 
+function mockProducts(products: unknown[] = []) {
+  server.use(
+    http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products`, () =>
+      HttpResponse.json(products),
+    ),
+  );
+}
+
 describe('CategoryList', () => {
   beforeEach(() => {
     useAuthStore
       .getState()
       .setSession({ accessToken: 'abc', refreshToken: 'def' });
+    mockProducts();
   });
 
   it('shows the existing categories', async () => {
@@ -173,5 +182,66 @@ describe('CategoryList', () => {
     await user.click(screen.getByRole('button', { name: /adicionar/i }));
 
     expect(await screen.findByText(/nome é obrigatório/i)).toBeInTheDocument();
+  });
+
+  it('shows how many products are in each category, derived from the product list', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json([
+          {
+            id: 'category-1',
+            catalogId: 'catalog-1',
+            name: 'Perfumes',
+            createdAt: '2025-12-01T00:00:00Z',
+          },
+          {
+            id: 'category-2',
+            catalogId: 'catalog-1',
+            name: 'Maquiagem',
+            createdAt: '2025-12-01T00:00:00Z',
+          },
+        ]),
+      ),
+    );
+    mockProducts([
+      { id: 'p1', categoryId: 'category-1' },
+      { id: 'p2', categoryId: 'category-1' },
+      { id: 'p3', categoryId: null },
+    ]);
+
+    renderCategoryList();
+
+    const perfumesRow = (await screen.findByText('Perfumes')).closest(
+      'li',
+    ) as HTMLElement;
+    const maquiagemRow = screen
+      .getByText('Maquiagem')
+      .closest('li') as HTMLElement;
+    expect(within(perfumesRow).getByText('2')).toBeInTheDocument();
+    expect(within(maquiagemRow).getByText('0')).toBeInTheDocument();
+  });
+
+  it('warns that deleting a category does not delete its products', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json([
+          {
+            id: 'category-1',
+            catalogId: 'catalog-1',
+            name: 'Perfumes',
+            createdAt: '2025-12-01T00:00:00Z',
+          },
+        ]),
+      ),
+    );
+    const user = userEvent.setup();
+    renderCategoryList();
+
+    await screen.findByText('Perfumes');
+    await user.click(screen.getByRole('button', { name: /excluir perfumes/i }));
+
+    expect(
+      screen.getByText(/produtos.*não (serão|são) exclu[ií]dos/i),
+    ).toBeInTheDocument();
   });
 });

@@ -18,6 +18,7 @@ import type { Category } from '@/lib/api/adapters/category';
 import { useCategories } from '../hooks/use-categories';
 import { useCreateCategory } from '../hooks/use-create-category';
 import { useDeleteCategory } from '../hooks/use-delete-category';
+import { useProducts } from '../hooks/use-products';
 import { useUpdateCategory } from '../hooks/use-update-category';
 
 const categoryNameSchema = z.object({
@@ -122,6 +123,10 @@ function DeleteCategoryDialog({
         <DialogHeader>
           <DialogTitle>Excluir &quot;{category.name}&quot;?</DialogTitle>
         </DialogHeader>
+        <p>
+          Os produtos desta categoria não serão excluídos — só ficarão sem
+          categoria.
+        </p>
         <DialogFooter>
           <Button
             variant="destructive"
@@ -144,9 +149,11 @@ function DeleteCategoryDialog({
 function CategoryRow({
   catalogId,
   category,
+  productCount,
 }: {
   catalogId: string;
   category: Category;
+  productCount: number;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -154,6 +161,7 @@ function CategoryRow({
   return (
     <li>
       <span>{category.name}</span>
+      <span>{productCount}</span>
       <Button
         aria-label={`Editar ${category.name}`}
         onClick={() => setEditOpen(true)}
@@ -184,6 +192,15 @@ function CategoryRow({
 
 export function CategoryList({ catalogId }: { catalogId: string }) {
   const { data: categories, isLoading } = useCategories(catalogId);
+  const { data: products } = useProducts(catalogId);
+  const productCountByCategoryId = new Map<string, number>();
+  for (const product of products ?? []) {
+    if (!product.categoryId) continue;
+    productCountByCategoryId.set(
+      product.categoryId,
+      (productCountByCategoryId.get(product.categoryId) ?? 0) + 1,
+    );
+  }
 
   if (isLoading) {
     return <p>Carregando...</p>;
@@ -198,6 +215,7 @@ export function CategoryList({ catalogId }: { catalogId: string }) {
               key={category.id}
               catalogId={catalogId}
               category={category}
+              productCount={productCountByCategoryId.get(category.id) ?? 0}
             />
           ))}
         </ul>
