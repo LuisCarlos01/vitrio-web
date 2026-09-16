@@ -1,8 +1,22 @@
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 function uniqueEmail() {
   return `e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
+}
+
+// CI é bem mais lento que uma máquina local pra recompilar/renderizar a
+// página após um reload — esperar a resposta de rede de verdade em vez de só
+// confiar no retry implícito do `expect` evita flakiness sob carga (ver #52).
+async function reloadAndWaitForCatalog(page: Page) {
+  const catalogResponse = page.waitForResponse(
+    (response) =>
+      /\/api\/v1\/catalogs(\?|$)/.test(response.url()) &&
+      response.request().method() === 'GET' &&
+      response.ok(),
+  );
+  await page.reload();
+  await catalogResponse;
 }
 
 test("a reseller can edit and persist their store's name", async ({ page }) => {
@@ -23,7 +37,7 @@ test("a reseller can edit and persist their store's name", async ({ page }) => {
 
   await expect(nameInput).toHaveValue('Loja da Ana Atualizada');
 
-  await page.reload();
+  await reloadAndWaitForCatalog(page);
 
   await expect(page.getByLabel(/^nome$/i)).toHaveValue(
     'Loja da Ana Atualizada',
@@ -52,7 +66,7 @@ test('a reseller can pick a curated color palette and persist it', async ({
 
   await expect(page.getByRole('radio', { name: /noturno/i })).toBeChecked();
 
-  await page.reload();
+  await reloadAndWaitForCatalog(page);
 
   await expect(page.getByRole('radio', { name: /noturno/i })).toBeChecked();
 });
@@ -123,7 +137,7 @@ test('a reseller can upload a logo and see it persist after reload', async ({
 
   await expect(page.getByAltText(/logo atual/i)).toBeVisible();
 
-  await page.reload();
+  await reloadAndWaitForCatalog(page);
 
   await expect(page.getByAltText(/logo atual/i)).toBeVisible();
 });
