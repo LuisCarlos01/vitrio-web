@@ -80,7 +80,7 @@ describe('WhatsappForm', () => {
     renderWhatsappForm();
 
     expect(
-      await screen.findByDisplayValue('5511912345678'),
+      await screen.findByDisplayValue('(11) 91234-5678'),
     ).toBeInTheDocument();
     expect(screen.getByText(/não verificado/i)).toBeInTheDocument();
     expect(
@@ -101,7 +101,7 @@ describe('WhatsappForm', () => {
     );
     renderWhatsappForm();
 
-    await screen.findByDisplayValue('5511912345678');
+    await screen.findByDisplayValue('(11) 91234-5678');
     expect(screen.getByText(/^verificado$/i)).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /verificar/i }),
@@ -125,18 +125,33 @@ describe('WhatsappForm', () => {
     const user = userEvent.setup();
     renderWhatsappForm();
 
-    const numberInput = await screen.findByDisplayValue('5511912345678');
+    const numberInput = await screen.findByDisplayValue('(11) 91234-5678');
     await user.clear(numberInput);
     await user.type(numberInput, '5511999998888');
     await user.click(screen.getByRole('button', { name: /salvar/i }));
 
     expect(
-      await screen.findByDisplayValue('5511999998888'),
+      await screen.findByDisplayValue('(11) 99999-8888'),
     ).toBeInTheDocument();
     expect(screen.getByText(/não verificado/i)).toBeInTheDocument();
   });
 
-  it('shows an error message when saving an invalid number', async () => {
+  it('discards letters as the reseller types, keeping only digits', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json([catalogDto()]),
+      ),
+    );
+    const user = userEvent.setup();
+    renderWhatsappForm();
+
+    const numberInput = await screen.findByLabelText(/whatsapp/i);
+    await user.type(numberInput, 'abc11def91234ghi5678');
+
+    expect(numberInput).toHaveValue('(11) 91234-5678');
+  });
+
+  it('shows an error message when the API rejects the number', async () => {
     server.use(
       http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
         HttpResponse.json([catalogDto()]),
@@ -154,7 +169,7 @@ describe('WhatsappForm', () => {
     renderWhatsappForm();
 
     const numberInput = await screen.findByLabelText(/whatsapp/i);
-    await user.type(numberInput, 'not-a-number');
+    await user.type(numberInput, '123');
     await user.click(screen.getByRole('button', { name: /salvar/i }));
 
     expect(
