@@ -9,7 +9,9 @@ import { server } from '@/mocks/server';
 import { CategoryList } from './category-list';
 
 function renderCategoryList() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <CategoryList catalogId="catalog-1" />
@@ -219,6 +221,85 @@ describe('CategoryList', () => {
       .closest('li') as HTMLElement;
     expect(within(perfumesRow).getByText('2')).toBeInTheDocument();
     expect(within(maquiagemRow).getByText('0')).toBeInTheDocument();
+  });
+
+  it('shows a query error, not the empty state, when the categories request fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    renderCategoryList();
+
+    expect(
+      await screen.findByText(/não foi possível carregar as categorias/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/nenhuma categoria cadastrada/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows an error message when renaming a category fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json([
+          {
+            id: 'category-1',
+            catalogId: 'catalog-1',
+            name: 'Perfumes',
+            createdAt: '2025-12-01T00:00:00Z',
+          },
+        ]),
+      ),
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/categories/category-1`,
+        () => HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderCategoryList();
+
+    await screen.findByText('Perfumes');
+    await user.click(screen.getByRole('button', { name: /editar perfumes/i }));
+    await user.click(screen.getByRole('button', { name: /salvar edição/i }));
+
+    expect(
+      await screen.findByText(/não foi possível salvar a categoria/i),
+    ).toBeInTheDocument();
+  });
+
+  it('shows an error message when deleting a category fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/categories`, () =>
+        HttpResponse.json([
+          {
+            id: 'category-1',
+            catalogId: 'catalog-1',
+            name: 'Perfumes',
+            createdAt: '2025-12-01T00:00:00Z',
+          },
+        ]),
+      ),
+      http.delete(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/categories/category-1`,
+        () => HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderCategoryList();
+
+    await screen.findByText('Perfumes');
+    await user.click(screen.getByRole('button', { name: /excluir perfumes/i }));
+    await user.click(
+      screen.getByRole('button', { name: /confirmar exclusão/i }),
+    );
+
+    expect(
+      await screen.findByText(/não foi possível excluir a categoria/i),
+    ).toBeInTheDocument();
   });
 
   it('warns that deleting a category does not delete its products', async () => {
