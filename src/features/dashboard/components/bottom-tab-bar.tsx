@@ -21,7 +21,7 @@ export function BottomTabBar() {
         <div
           data-testid="active-tab-indicator"
           aria-hidden
-          className="absolute top-1 flex h-8 items-center justify-center transition-[left] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+          className="absolute top-1 -z-10 flex h-8 items-center justify-center transition-[left] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
           style={{
             left: `${activeIndex * slotWidth}%`,
             width: `${slotWidth}%`,
