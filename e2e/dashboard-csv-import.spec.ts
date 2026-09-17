@@ -43,6 +43,14 @@ test('a reseller can preview a CSV and confirm the import', async ({
   // A URL não aponta pra uma imagem de verdade, então a linha estruturalmente
   // válida é recusada na confirmação por falha ao baixar a imagem — mesmo
   // assim prova que preview → confirm reenviando o arquivo funciona
-  // fim-a-fim contra a API real, e que a resposta reporta por linha.
-  await expect(page.getByText(/perfume válido: recusado/i)).toBeVisible();
+  // fim-a-fim contra a API real, e que a resposta reporta por linha. A lista
+  // de preview continua na tela (não é limpa ao confirmar), então "Perfume
+  // Válido" aparece 2x — o segundo filtro isola a linha do resultado da
+  // confirmação (com o badge "Recusado"), não a da prévia (badge "Válida").
+  await expect(
+    page
+      .getByRole('listitem')
+      .filter({ hasText: 'Perfume Válido' })
+      .filter({ hasText: 'Recusado' }),
+  ).toBeVisible();
 });
