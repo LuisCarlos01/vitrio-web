@@ -104,6 +104,7 @@ describe('StorefrontCatalog', () => {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
         imageUrl: null,
+        quantityAvailable: 5,
         quantity: 1,
       },
     ]);
@@ -130,6 +131,7 @@ describe('StorefrontCatalog', () => {
         productId: 'prod-2',
         name: 'Glamour Noir',
         imageUrl: null,
+        quantityAvailable: 5,
         quantity: 2,
       },
     ]);
@@ -144,13 +146,16 @@ describe('StorefrontCatalog', () => {
   });
 
   it('does not show items added while browsing a different store', () => {
-    useCartStore
-      .getState()
-      .addItem(
-        'outra-loja',
-        { productId: 'prod-9', name: 'Produto de outra loja', imageUrl: null },
-        3,
-      );
+    useCartStore.getState().addItem(
+      'outra-loja',
+      {
+        productId: 'prod-9',
+        name: 'Produto de outra loja',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      3,
+    );
 
     render(<StorefrontCatalog slug={SLUG} catalog={buildCatalog()} />);
 

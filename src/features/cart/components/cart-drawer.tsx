@@ -43,6 +43,7 @@ export function CartDrawer({
                       onChange={(quantity) =>
                         setQuantity(slug, item.productId, quantity)
                       }
+                      max={item.quantityAvailable}
                     />
                     <button
                       type="button"

@@ -40,7 +40,12 @@ export function StorefrontCatalog({
     if (!product) return;
     addItem(
       slug,
-      { productId: product.id, name: product.name, imageUrl: product.imageUrl },
+      {
+        productId: product.id,
+        name: product.name,
+        imageUrl: product.imageUrl,
+        quantityAvailable: product.quantityAvailable,
+      },
       quantity,
     );
   }

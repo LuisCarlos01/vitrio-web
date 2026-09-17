@@ -8,12 +8,14 @@ describe('buildWhatsappCheckoutUrl', () => {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
         imageUrl: null,
+        quantityAvailable: 10,
         quantity: 2,
       },
       {
         productId: 'prod-2',
         name: 'Glamour Noir',
         imageUrl: null,
+        quantityAvailable: 10,
         quantity: 1,
       },
     ]);
@@ -32,6 +34,7 @@ describe('buildWhatsappCheckoutUrl', () => {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
         imageUrl: null,
+        quantityAvailable: 10,
         quantity: 1,
       },
     ]);
@@ -45,6 +48,7 @@ describe('buildWhatsappCheckoutUrl', () => {
         productId: 'prod-1',
         name: 'Eggeo Blossom',
         imageUrl: null,
+        quantityAvailable: 10,
         quantity: 1,
       },
     ]);

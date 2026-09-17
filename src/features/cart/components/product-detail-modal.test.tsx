@@ -71,6 +71,24 @@ describe('ProductDetailModal', () => {
     expect(onAddToCart).toHaveBeenCalledWith('prod-1', 2);
   });
 
+  it('never lets the stepper go past the available stock', async () => {
+    render(
+      <ProductDetailModal
+        product={buildProduct({ quantityAvailable: 2 })}
+        categoryName="Perfumes"
+        onClose={vi.fn()}
+        onAddToCart={vi.fn()}
+      />,
+    );
+    const increment = screen.getByRole('button', {
+      name: 'Aumentar quantidade',
+    });
+
+    await userEvent.click(increment);
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(increment).toBeDisabled();
+  });
+
   it('shows a disabled "Esgotado" button instead of "Adicionar ao carrinho" when out of stock', () => {
     render(
       <ProductDetailModal

@@ -40,6 +40,22 @@ describe('QuantityStepper', () => {
     ).toBeDisabled();
   });
 
+  it('disables the increment button once quantity reaches the given max', () => {
+    render(<QuantityStepper quantity={5} onChange={vi.fn()} max={5} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Aumentar quantidade' }),
+    ).toBeDisabled();
+  });
+
+  it('keeps the increment button enabled below the given max', () => {
+    render(<QuantityStepper quantity={4} onChange={vi.fn()} max={5} />);
+
+    expect(
+      screen.getByRole('button', { name: 'Aumentar quantidade' }),
+    ).toBeEnabled();
+  });
+
   it('disables both buttons when disabled is true', () => {
     render(<QuantityStepper quantity={2} onChange={vi.fn()} disabled />);
 

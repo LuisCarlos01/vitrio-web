@@ -13,20 +13,26 @@ describe('CartDrawer', () => {
   });
 
   it('shows the total item count as a badge on the trigger', () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-2', name: 'Glamour Noir', imageUrl: null },
-        1,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-2',
+        name: 'Glamour Noir',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      1,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
 
@@ -36,13 +42,16 @@ describe('CartDrawer', () => {
   });
 
   it('only counts items from the current store, ignoring other stores carts', () => {
-    useCartStore
-      .getState()
-      .addItem(
-        OTHER_SLUG,
-        { productId: 'prod-9', name: 'Colônia do Bruno', imageUrl: null },
-        5,
-      );
+    useCartStore.getState().addItem(
+      OTHER_SLUG,
+      {
+        productId: 'prod-9',
+        name: 'Colônia do Bruno',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      5,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
 
@@ -58,13 +67,16 @@ describe('CartDrawer', () => {
   });
 
   it('opens the panel listing cart items when the trigger is clicked', async () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
@@ -74,20 +86,26 @@ describe('CartDrawer', () => {
   });
 
   it('removes an item when its remove button is clicked, without touching other stores', async () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
-    useCartStore
-      .getState()
-      .addItem(
-        OTHER_SLUG,
-        { productId: 'prod-9', name: 'Colônia do Bruno', imageUrl: null },
-        1,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
+    useCartStore.getState().addItem(
+      OTHER_SLUG,
+      {
+        productId: 'prod-9',
+        name: 'Colônia do Bruno',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      1,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
@@ -101,19 +119,23 @@ describe('CartDrawer', () => {
         productId: 'prod-9',
         name: 'Colônia do Bruno',
         imageUrl: null,
+        quantityAvailable: 10,
         quantity: 1,
       },
     ]);
   });
 
   it('updates the item quantity in the store when the stepper is used', async () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
@@ -135,13 +157,16 @@ describe('CartDrawer', () => {
   });
 
   it('renders a WhatsApp checkout link with the built wa.me url when the number is verified', async () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
@@ -154,13 +179,16 @@ describe('CartDrawer', () => {
   });
 
   it('disables checkout with an explanation when whatsappNumber is null, without losing the cart', async () => {
-    useCartStore
-      .getState()
-      .addItem(
-        SLUG,
-        { productId: 'prod-1', name: 'Eggeo Blossom', imageUrl: null },
-        2,
-      );
+    useCartStore.getState().addItem(
+      SLUG,
+      {
+        productId: 'prod-1',
+        name: 'Eggeo Blossom',
+        imageUrl: null,
+        quantityAvailable: 10,
+      },
+      2,
+    );
 
     render(<CartDrawer slug={SLUG} whatsappNumber={null} />);
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
