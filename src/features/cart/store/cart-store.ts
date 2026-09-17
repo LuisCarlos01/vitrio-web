@@ -5,6 +5,7 @@ export type CartItem = {
   productId: string;
   name: string;
   imageUrl: string | null;
+  quantityAvailable: number;
   quantity: number;
 };
 
@@ -33,10 +34,22 @@ export const useCartStore = create<CartState>()(
           const nextItems = existing
             ? items.map((cartItem) =>
                 cartItem.productId === item.productId
-                  ? { ...item, quantity: cartItem.quantity + quantity }
+                  ? {
+                      ...item,
+                      quantity: Math.min(
+                        cartItem.quantity + quantity,
+                        item.quantityAvailable,
+                      ),
+                    }
                   : cartItem,
               )
-            : [...items, { ...item, quantity }];
+            : [
+                ...items,
+                {
+                  ...item,
+                  quantity: Math.min(quantity, item.quantityAvailable),
+                },
+              ];
 
           return { itemsBySlug: { ...state.itemsBySlug, [slug]: nextItems } };
         }),
@@ -47,7 +60,12 @@ export const useCartStore = create<CartState>()(
             quantity <= 0
               ? items.filter((item) => item.productId !== productId)
               : items.map((item) =>
-                  item.productId === productId ? { ...item, quantity } : item,
+                  item.productId === productId
+                    ? {
+                        ...item,
+                        quantity: Math.min(quantity, item.quantityAvailable),
+                      }
+                    : item,
                 );
 
           return { itemsBySlug: { ...state.itemsBySlug, [slug]: nextItems } };
@@ -68,9 +86,13 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'vitrio-cart',
-      version: 1,
+      version: 2,
       // v0 guardava um `items: CartItem[]` global (sem escopo por loja) —
-      // formato incompatível, não dá pra saber a que slug pertencia.
+      // formato incompatível, não dá pra saber a que slug pertencia. v1 não
+      // guardava `quantityAvailable` por item, então não dá pra aplicar o
+      // limite de estoque num carrinho antigo sem reconsultar a API — mais
+      // simples e seguro zerar do que arriscar permitir quantidade além do
+      // estoque de novo.
       migrate: (): Pick<CartState, 'itemsBySlug'> => ({ itemsBySlug: {} }),
     },
   ),

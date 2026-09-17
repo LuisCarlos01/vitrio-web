@@ -48,6 +48,7 @@ function ProductCard({ product, onAddToCart, onOpenDetail }: ProductCardProps) {
       <QuantityStepper
         quantity={quantity}
         onChange={setQuantity}
+        max={product.quantityAvailable}
         disabled={outOfStock}
       />
       {outOfStock ? (

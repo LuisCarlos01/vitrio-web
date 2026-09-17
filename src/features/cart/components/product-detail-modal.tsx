@@ -40,6 +40,7 @@ export function ProductDetailModal({
       <QuantityStepper
         quantity={quantity}
         onChange={setQuantity}
+        max={product.quantityAvailable}
         disabled={isOutOfStock}
       />
       {isOutOfStock ? (

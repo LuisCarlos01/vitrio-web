@@ -99,6 +99,17 @@ describe('ProductGrid', () => {
     expect(onAddToCart).toHaveBeenCalledWith('prod-1', 2);
   });
 
+  it('never lets the stepper go past the available stock', async () => {
+    renderGrid([buildProduct({ quantityAvailable: 2 })]);
+    const increment = screen.getByRole('button', {
+      name: 'Aumentar quantidade',
+    });
+
+    await userEvent.click(increment);
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(increment).toBeDisabled();
+  });
+
   it('disables the stepper and shows "Esgotado" instead of the add-to-cart button when out of stock', () => {
     renderGrid([buildProduct({ isOrderable: false })]);
 
