@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -46,15 +47,28 @@ function CreateCategoryForm({ catalogId }: { catalogId: string }) {
           { onSuccess: () => reset() },
         );
       })}
+      className="flex flex-col gap-1.5"
     >
       <Label htmlFor="new-category-name">Nome da categoria</Label>
-      <Input id="new-category-name" {...register('name')} />
-      {errors.name && <p role="alert">{errors.name.message}</p>}
-      <Button type="submit" disabled={createCategory.isPending}>
-        Adicionar
-      </Button>
+      <div className="flex gap-2">
+        <Input id="new-category-name" {...register('name')} />
+        <Button
+          type="submit"
+          disabled={createCategory.isPending}
+          className="w-fit"
+        >
+          Adicionar
+        </Button>
+      </div>
+      {errors.name && (
+        <p role="alert" className="text-destructive text-sm">
+          {errors.name.message}
+        </p>
+      )}
       {createCategory.isError && (
-        <p role="alert">Não foi possível criar a categoria.</p>
+        <p role="alert" className="text-destructive text-sm">
+          Não foi possível criar a categoria.
+        </p>
       )}
     </form>
   );
@@ -90,17 +104,22 @@ function EditCategoryDialog({
               { onSuccess: () => onOpenChange(false) },
             );
           })}
+          className="flex flex-col gap-4"
         >
-          <Label htmlFor={`edit-name-${category.id}`}>Novo nome</Label>
-          <Input id={`edit-name-${category.id}`} {...register('name')} />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`edit-name-${category.id}`}>Novo nome</Label>
+            <Input id={`edit-name-${category.id}`} {...register('name')} />
+          </div>
+          {updateCategory.isError && (
+            <p role="alert" className="text-destructive text-sm">
+              Não foi possível salvar a categoria.
+            </p>
+          )}
           <DialogFooter>
             <Button type="submit" disabled={updateCategory.isPending}>
               Salvar edição
             </Button>
           </DialogFooter>
-          {updateCategory.isError && (
-            <p role="alert">Não foi possível salvar a categoria.</p>
-          )}
         </form>
       </DialogContent>
     </Dialog>
@@ -126,10 +145,15 @@ function DeleteCategoryDialog({
         <DialogHeader>
           <DialogTitle>Excluir &quot;{category.name}&quot;?</DialogTitle>
         </DialogHeader>
-        <p>
+        <p className="text-muted-foreground text-sm">
           Os produtos desta categoria não serão excluídos — só ficarão sem
           categoria.
         </p>
+        {deleteCategory.isError && (
+          <p role="alert" className="text-destructive text-sm">
+            Não foi possível excluir a categoria.
+          </p>
+        )}
         <DialogFooter>
           <Button
             variant="destructive"
@@ -144,9 +168,6 @@ function DeleteCategoryDialog({
             Confirmar exclusão
           </Button>
         </DialogFooter>
-        {deleteCategory.isError && (
-          <p role="alert">Não foi possível excluir a categoria.</p>
-        )}
       </DialogContent>
     </Dialog>
   );
@@ -165,21 +186,31 @@ function CategoryRow({
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
-    <li>
-      <span>{category.name}</span>
-      <span>{productCount}</span>
-      <Button
-        aria-label={`Editar ${category.name}`}
-        onClick={() => setEditOpen(true)}
-      >
-        Editar
-      </Button>
-      <Button
-        aria-label={`Excluir ${category.name}`}
-        onClick={() => setDeleteOpen(true)}
-      >
-        Excluir
-      </Button>
+    <li className="border-border flex items-center justify-between gap-2 border-b py-2">
+      <span className="flex items-center gap-2">
+        <span className="text-sm font-medium">{category.name}</span>
+        <Badge variant="outline" aria-label={`${productCount} produtos`}>
+          {productCount}
+        </Badge>
+      </span>
+      <span className="flex gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label={`Editar ${category.name}`}
+          onClick={() => setEditOpen(true)}
+        >
+          Editar
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label={`Excluir ${category.name}`}
+          onClick={() => setDeleteOpen(true)}
+        >
+          Excluir
+        </Button>
+      </span>
       <EditCategoryDialog
         catalogId={catalogId}
         category={category}
@@ -221,7 +252,7 @@ export function CategoryList({ catalogId }: { catalogId: string }) {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {categories && categories.length > 0 ? (
         <ul>
           {categories.map((category) => (
@@ -234,7 +265,9 @@ export function CategoryList({ catalogId }: { catalogId: string }) {
           ))}
         </ul>
       ) : (
-        <p>Nenhuma categoria cadastrada ainda.</p>
+        <p className="text-muted-foreground text-sm">
+          Nenhuma categoria cadastrada ainda.
+        </p>
       )}
       <CreateCategoryForm catalogId={catalogId} />
     </div>
