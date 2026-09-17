@@ -239,6 +239,11 @@ export function CatalogForm() {
         </CardContent>
       </Card>
 
+      {uploadAsset.isError && (
+        <p role="alert" className="text-destructive text-sm">
+          Não foi possível enviar a logo. Tente novamente.
+        </p>
+      )}
       {updateCatalog.isError && (
         <p role="alert" className="text-destructive text-sm">
           Não foi possível salvar. Tente novamente.

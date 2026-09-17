@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { XIcon } from 'lucide-react';
 import type { PublicProduct } from '@/lib/api/adapters/public-catalog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { QuantityStepper } from './quantity-stepper';
 
 type ProductDetailModalProps = {
@@ -26,32 +29,63 @@ export function ProductDetailModal({
   const isOutOfStock = product.quantityAvailable === 0 || !product.isOrderable;
 
   return (
-    <div role="dialog" aria-label={product.name}>
-      <button type="button" aria-label="Fechar" onClick={onClose}>
-        Fechar
-      </button>
-      {product.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element -- protótipo de vitrine, otimização de imagem fica pra depois
-        <img src={product.imageUrl} alt={product.name} />
-      )}
-      {categoryName && <p>{categoryName}</p>}
-      <h2>{product.name}</h2>
-      {product.description && <p>{product.description}</p>}
-      <QuantityStepper
-        quantity={quantity}
-        onChange={setQuantity}
-        max={product.quantityAvailable}
-        disabled={isOutOfStock}
-      />
-      {isOutOfStock ? (
-        <button type="button" disabled>
-          Esgotado
-        </button>
-      ) : (
-        <button type="button" onClick={() => onAddToCart(product.id, quantity)}>
-          Adicionar ao carrinho
-        </button>
-      )}
-    </div>
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
+      <div
+        role="dialog"
+        aria-label={product.name}
+        className="bg-popover fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col overflow-y-auto rounded-t-2xl p-4 sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl"
+      >
+        <div className="bg-border mx-auto mb-1 h-1 w-9 shrink-0 rounded-full sm:hidden" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Fechar"
+          onClick={onClose}
+          className="bg-muted absolute top-2 right-2"
+        >
+          <XIcon />
+        </Button>
+        {product.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- protótipo de vitrine, otimização de imagem fica pra depois
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="aspect-square w-full rounded-xl object-cover"
+          />
+        )}
+        <div className="flex flex-col gap-2 pt-3">
+          {categoryName && <Badge variant="secondary">{categoryName}</Badge>}
+          <h2 className="font-heading text-lg font-semibold">{product.name}</h2>
+          {product.description && (
+            <p className="text-muted-foreground text-sm">
+              {product.description}
+            </p>
+          )}
+        </div>
+        <div className="mt-4 flex flex-row items-center justify-between gap-3">
+          <QuantityStepper
+            quantity={quantity}
+            onChange={setQuantity}
+            max={product.quantityAvailable}
+            disabled={isOutOfStock}
+          />
+          {isOutOfStock ? (
+            <Button type="button" variant="outline" disabled className="flex-1">
+              Esgotado
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => onAddToCart(product.id, quantity)}
+              className="text-primary-foreground flex-1 bg-[var(--tenant-button)] hover:bg-[var(--tenant-button)]/90"
+            >
+              Adicionar ao carrinho
+            </Button>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
