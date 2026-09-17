@@ -171,7 +171,7 @@ describe('DashboardOverview', () => {
     renderOverview(buildCatalog());
 
     const card = (await screen.findByText('Produtos ativos')).closest(
-      'article',
+      '[data-slot="card"]',
     ) as HTMLElement;
     expect(await within(card).findByText('1')).toBeInTheDocument();
     expect(within(card).getByText(/0.*sem foto/)).toBeInTheDocument();
