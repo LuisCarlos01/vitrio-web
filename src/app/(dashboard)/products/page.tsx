@@ -1,5 +1,6 @@
 'use client';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CsvImportForm } from '@/features/dashboard/components/csv-import-form';
 import { ProductList } from '@/features/dashboard/components/product-list';
 import { useCatalog } from '@/features/dashboard/hooks/use-catalog';
@@ -24,11 +25,19 @@ export default function ProductsPage() {
   }
 
   return (
-    <main>
-      <h1>Produtos</h1>
+    <main className="flex flex-col gap-6 p-4 md:p-6">
+      <h1 className="text-2xl font-semibold tracking-tight">Produtos</h1>
       <ProductList catalogId={catalog.id} />
-      <h2>Importar via CSV</h2>
-      <CsvImportForm catalogId={catalog.id} />
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Importar via CSV</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CsvImportForm catalogId={catalog.id} />
+        </CardContent>
+      </Card>
     </main>
   );
 }

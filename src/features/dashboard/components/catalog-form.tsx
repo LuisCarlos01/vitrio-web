@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileInput } from '@/components/ui/file-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { contrastTextColor } from '@/lib/color/contrast-text-color';
@@ -184,12 +185,12 @@ export function CatalogForm() {
               />
             )}
             <Label htmlFor="logo">Logo</Label>
-            <input
+            <FileInput
               id="logo"
-              type="file"
               accept="image/*"
+              buttonLabel="Escolher logo"
+              fileName={logoFile?.name}
               onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
-              className="text-muted-foreground text-sm"
             />
           </div>
           <div className="flex flex-col gap-1.5">

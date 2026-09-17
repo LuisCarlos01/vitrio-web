@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { FileInput } from '@/components/ui/file-input';
 import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api/errors';
 import type { PreviewRow } from '@/lib/api/adapters/csv-import';
@@ -27,20 +29,25 @@ export function CsvImportForm({ catalogId }: { catalogId: string }) {
   const hasValidRows = previewRows?.some((row) => row.isValid) ?? false;
 
   return (
-    <div>
-      <Label htmlFor="csv-file">Arquivo CSV</Label>
-      <input
-        id="csv-file"
-        type="file"
-        accept=".csv,text/csv"
-        disabled={preview.isPending}
-        onChange={(event) => {
-          setFile(event.target.files?.[0] ?? null);
-          setPreviewRows(null);
-        }}
-      />
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="csv-file">Arquivo CSV</Label>
+        <FileInput
+          id="csv-file"
+          accept=".csv,text/csv"
+          disabled={preview.isPending}
+          buttonLabel="Escolher arquivo CSV"
+          fileName={file?.name}
+          onChange={(event) => {
+            setFile(event.target.files?.[0] ?? null);
+            setPreviewRows(null);
+          }}
+        />
+      </div>
       <Button
         type="button"
+        variant="outline"
+        className="w-fit"
         disabled={!file || preview.isPending}
         onClick={() => {
           if (!file) return;
@@ -54,13 +61,27 @@ export function CsvImportForm({ catalogId }: { catalogId: string }) {
       </Button>
 
       {previewRows && (
-        <>
-          <ul>
+        <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-2">
             {previewRows.map((row) => (
-              <li key={row.lineNumber}>
-                <span>{row.name || `Linha ${row.lineNumber}`}</span>
+              <li
+                key={row.lineNumber}
+                className="border-border flex flex-col gap-1 rounded-lg border p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">
+                    {row.name || `Linha ${row.lineNumber}`}
+                  </span>
+                  <Badge variant={row.isValid ? 'outline' : 'destructive'}>
+                    {row.isValid ? 'Válida' : 'Com erro'}
+                  </Badge>
+                </div>
                 {row.errors.map((error) => (
-                  <p key={error} role="alert">
+                  <p
+                    key={error}
+                    role="alert"
+                    className="text-destructive text-sm"
+                  >
                     {error}
                   </p>
                 ))}
@@ -69,25 +90,34 @@ export function CsvImportForm({ catalogId }: { catalogId: string }) {
           </ul>
           <Button
             type="button"
+            className="w-fit"
             disabled={!hasValidRows || confirm.isPending}
             onClick={() => file && confirm.mutate({ catalogId, file })}
           >
             Confirmar importação
           </Button>
-        </>
+        </div>
       )}
 
       {confirm.data && (
-        <ul>
+        <ul className="flex flex-col gap-2">
           {confirm.data.map((row) => (
-            <li key={row.lineNumber}>
-              {row.productId ? `${row.name}: criado` : `${row.name}: recusado`}
+            <li
+              key={row.lineNumber}
+              className="border-border flex items-center justify-between gap-2 border-b py-2 text-sm"
+            >
+              <span>{row.name}</span>
+              <Badge variant={row.productId ? 'outline' : 'destructive'}>
+                {row.productId ? 'Criado' : 'Recusado'}
+              </Badge>
             </li>
           ))}
         </ul>
       )}
       {confirmErrorMessage(confirm.error) && (
-        <p role="alert">{confirmErrorMessage(confirm.error)}</p>
+        <p role="alert" className="text-destructive text-sm">
+          {confirmErrorMessage(confirm.error)}
+        </p>
       )}
     </div>
   );

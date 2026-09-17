@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { FileInput } from '@/components/ui/file-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api/errors';
@@ -62,6 +63,9 @@ function CreateProductForm({
   const isPending = uploadAsset.isPending || createProduct.isPending;
   const error = createProduct.error;
 
+  const selectClassName =
+    'border-input h-8 w-full rounded-lg border bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
+
   return (
     <form
       onSubmit={handleSubmit(async (values) => {
@@ -93,20 +97,31 @@ function CreateProductForm({
           },
         );
       })}
+      className="flex flex-col gap-4"
     >
-      <Label htmlFor={`${formId}-name`}>Nome</Label>
-      <Input id={`${formId}-name`} {...register('name')} />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${formId}-name`}>Nome</Label>
+        <Input id={`${formId}-name`} {...register('name')} />
+      </div>
 
-      <Label htmlFor={`${formId}-sku`}>SKU</Label>
-      <Input id={`${formId}-sku`} {...register('sku')} />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${formId}-sku`}>SKU</Label>
+        <Input id={`${formId}-sku`} {...register('sku')} />
+      </div>
 
-      <Label htmlFor={`${formId}-description`}>Descrição</Label>
-      <Input id={`${formId}-description`} {...register('description')} />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${formId}-description`}>Descrição</Label>
+        <Input id={`${formId}-description`} {...register('description')} />
+      </div>
 
       {categories && categories.length > 0 && (
-        <>
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${formId}-category`}>Categoria</Label>
-          <select id={`${formId}-category`} {...register('categoryId')}>
+          <select
+            id={`${formId}-category`}
+            {...register('categoryId')}
+            className={selectClassName}
+          >
             <option value="">Sem categoria</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -114,21 +129,28 @@ function CreateProductForm({
               </option>
             ))}
           </select>
-        </>
+        </div>
       )}
 
-      <Label htmlFor={`${formId}-image`}>Imagem</Label>
-      <input
-        id={`${formId}-image`}
-        type="file"
-        accept="image/*"
-        onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-      />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={`${formId}-image`}>Imagem</Label>
+        <FileInput
+          id={`${formId}-image`}
+          accept="image/*"
+          buttonLabel="Escolher imagem"
+          fileName={file?.name}
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+        />
+      </div>
 
-      <Button type="submit" disabled={isPending || !file}>
+      <Button type="submit" disabled={isPending || !file} className="w-fit">
         Adicionar produto
       </Button>
-      {error && <p role="alert">{createProductErrorMessage(error)}</p>}
+      {error && (
+        <p role="alert" className="text-destructive text-sm">
+          {createProductErrorMessage(error)}
+        </p>
+      )}
     </form>
   );
 }
@@ -182,43 +204,69 @@ function EditProductDialog({
               { onSuccess: () => onOpenChange(false) },
             );
           })}
+          className="flex flex-col gap-4"
         >
-          <Label htmlFor={`quantity-${product.id}`}>
-            Quantidade disponível
-          </Label>
-          <Input
-            id={`quantity-${product.id}`}
-            type="number"
-            {...register('quantityAvailable')}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`quantity-${product.id}`}>
+              Quantidade disponível
+            </Label>
+            <Input
+              id={`quantity-${product.id}`}
+              type="number"
+              {...register('quantityAvailable')}
+            />
+          </div>
 
-          <Label htmlFor={`visible-${product.id}`}>Visível</Label>
-          <input
-            id={`visible-${product.id}`}
-            type="checkbox"
-            {...register('isVisible')}
-          />
+          <div className="flex flex-col gap-2">
+            <Label
+              htmlFor={`visible-${product.id}`}
+              className="justify-start gap-2 font-normal"
+            >
+              <input
+                id={`visible-${product.id}`}
+                type="checkbox"
+                {...register('isVisible')}
+                className="accent-primary size-4"
+              />
+              Visível
+            </Label>
 
-          <Label htmlFor={`orderable-${product.id}`}>
-            Disponível para compra
-          </Label>
-          <input
-            id={`orderable-${product.id}`}
-            type="checkbox"
-            {...register('isOrderable')}
-          />
+            <Label
+              htmlFor={`orderable-${product.id}`}
+              className="justify-start gap-2 font-normal"
+            >
+              <input
+                id={`orderable-${product.id}`}
+                type="checkbox"
+                {...register('isOrderable')}
+                className="accent-primary size-4"
+              />
+              Disponível para compra
+            </Label>
 
-          <Label htmlFor={`active-${product.id}`}>Ativo</Label>
-          <input
-            id={`active-${product.id}`}
-            type="checkbox"
-            {...register('isActive')}
-          />
+            <Label
+              htmlFor={`active-${product.id}`}
+              className="justify-start gap-2 font-normal"
+            >
+              <input
+                id={`active-${product.id}`}
+                type="checkbox"
+                {...register('isActive')}
+                className="accent-primary size-4"
+              />
+              Ativo
+            </Label>
+          </div>
           {!product.isActive && (
-            <p>
+            <p className="text-muted-foreground text-sm">
               Reativar não restaura visibilidade/disponibilidade automaticamente
               — confirme os dois campos acima se quiser que o produto volte a
               aparecer na vitrine.
+            </p>
+          )}
+          {updateProduct.isError && (
+            <p role="alert" className="text-destructive text-sm">
+              Não foi possível salvar o produto.
             </p>
           )}
 
@@ -227,9 +275,6 @@ function EditProductDialog({
               Salvar produto
             </Button>
           </DialogFooter>
-          {updateProduct.isError && (
-            <p role="alert">Não foi possível salvar o produto.</p>
-          )}
         </form>
       </DialogContent>
     </Dialog>
@@ -255,6 +300,11 @@ function DeleteProductDialog({
         <DialogHeader>
           <DialogTitle>Excluir &quot;{product.name}&quot;?</DialogTitle>
         </DialogHeader>
+        {deleteProduct.isError && (
+          <p role="alert" className="text-destructive text-sm">
+            Não foi possível excluir o produto.
+          </p>
+        )}
         <DialogFooter>
           <Button
             variant="destructive"
@@ -269,9 +319,6 @@ function DeleteProductDialog({
             Confirmar exclusão
           </Button>
         </DialogFooter>
-        {deleteProduct.isError && (
-          <p role="alert">Não foi possível excluir o produto.</p>
-        )}
       </DialogContent>
     </Dialog>
   );
@@ -360,7 +407,7 @@ function CreateProductSection({ catalogId }: { catalogId: string }) {
         <CreateProductForm catalogId={catalogId} />
       </div>
       <Button
-        className="fixed right-4 bottom-20 rounded-full md:hidden"
+        className="fixed right-4 bottom-20 size-14 rounded-full text-2xl shadow-lg md:hidden"
         aria-label="Novo produto"
         onClick={() => setMobileOpen(true)}
       >
@@ -404,7 +451,7 @@ export function ProductList({ catalogId }: { catalogId: string }) {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {products && products.length > 0 ? (
         <ul>
           {products.map((product) => (
@@ -421,7 +468,9 @@ export function ProductList({ catalogId }: { catalogId: string }) {
           ))}
         </ul>
       ) : (
-        <p>Nenhum produto cadastrado ainda.</p>
+        <p className="text-muted-foreground text-sm">
+          Nenhum produto cadastrado ainda.
+        </p>
       )}
       <CreateProductSection catalogId={catalogId} />
     </div>

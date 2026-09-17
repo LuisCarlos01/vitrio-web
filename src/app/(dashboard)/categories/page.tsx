@@ -25,17 +25,17 @@ export default function CategoriesPage() {
   }
 
   return (
-    <main>
+    <main className="flex flex-col gap-6 p-4 md:p-6">
       {/* Categorias não tem aba própria na bottom tab bar (4 itens fixos, ADR
           0001/#23) — no mobile, o caminho de volta é esse breadcrumb. */}
       <Link
         href="/products"
-        className="inline-flex items-center gap-1 md:hidden"
+        className="text-muted-foreground inline-flex items-center gap-1 text-sm md:hidden"
       >
         <ChevronLeft className="size-4" />
         Produtos
       </Link>
-      <h1>Categorias</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Categorias</h1>
       <CategoryList catalogId={catalog.id} />
     </main>
   );
