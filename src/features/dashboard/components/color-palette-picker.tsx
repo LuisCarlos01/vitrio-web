@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from 'cn';
 import { Label } from '@/components/ui/label';
 
 export const CURATED_PALETTES = [
@@ -37,9 +38,14 @@ export function ColorPalettePicker({
     findMatchingPalette(primaryColorHex, buttonColorHex)?.name ??
     'custom';
 
+  const swatchInputClassName =
+    'size-6 cursor-pointer rounded-full border border-border p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0';
+
   return (
-    <fieldset>
-      <legend>Cor da loja</legend>
+    <fieldset className="flex flex-col gap-2">
+      {/* "Cor da loja" já aparece como título da seção em CatalogForm — legenda
+          fica só pra leitor de tela não anunciar o fieldset sem nome. */}
+      <legend className="sr-only">Cor da loja</legend>
       {CURATED_PALETTES.map((palette) => {
         const isSelected = selected === palette.name;
         const currentPrimary = isSelected
@@ -50,8 +56,16 @@ export function ColorPalettePicker({
           : palette.buttonColorHex;
 
         return (
-          <div key={palette.name}>
-            <Label>
+          <Label
+            key={palette.name}
+            className={cn(
+              'cursor-pointer justify-between rounded-lg border p-3 font-normal transition-colors',
+              isSelected
+                ? 'border-primary bg-accent'
+                : 'border-border hover:bg-accent/50',
+            )}
+          >
+            <span className="flex items-center gap-3">
               <input
                 type="radio"
                 name="color-palette"
@@ -65,35 +79,46 @@ export function ColorPalettePicker({
                 }}
               />
               {palette.name}
-            </Label>
-            <input
-              type="color"
-              aria-label={`Cor primária de ${palette.name}`}
-              value={currentPrimary.toLowerCase()}
-              onChange={(event) => {
-                setExplicitSelection(palette.name);
-                onChange({
-                  primaryColorHex: event.target.value,
-                  buttonColorHex: currentButton,
-                });
-              }}
-            />
-            <input
-              type="color"
-              aria-label={`Cor do botão de ${palette.name}`}
-              value={currentButton.toLowerCase()}
-              onChange={(event) => {
-                setExplicitSelection(palette.name);
-                onChange({
-                  primaryColorHex: currentPrimary,
-                  buttonColorHex: event.target.value,
-                });
-              }}
-            />
-          </div>
+            </span>
+            <span className="flex items-center gap-2">
+              <input
+                type="color"
+                aria-label={`Cor primária de ${palette.name}`}
+                value={currentPrimary.toLowerCase()}
+                onChange={(event) => {
+                  setExplicitSelection(palette.name);
+                  onChange({
+                    primaryColorHex: event.target.value,
+                    buttonColorHex: currentButton,
+                  });
+                }}
+                className={swatchInputClassName}
+              />
+              <input
+                type="color"
+                aria-label={`Cor do botão de ${palette.name}`}
+                value={currentButton.toLowerCase()}
+                onChange={(event) => {
+                  setExplicitSelection(palette.name);
+                  onChange({
+                    primaryColorHex: currentPrimary,
+                    buttonColorHex: event.target.value,
+                  });
+                }}
+                className={swatchInputClassName}
+              />
+            </span>
+          </Label>
         );
       })}
-      <Label>
+      <Label
+        className={cn(
+          'cursor-pointer rounded-lg border p-3 font-normal transition-colors',
+          selected === 'custom'
+            ? 'border-primary bg-accent'
+            : 'border-border hover:bg-accent/50',
+        )}
+      >
         <input
           type="radio"
           name="color-palette"
@@ -106,31 +131,39 @@ export function ColorPalettePicker({
         Avançado
       </Label>
       {selected === 'custom' && (
-        <div>
-          <Label htmlFor="custom-primary-color">Cor primária (avançado)</Label>
-          <input
-            id="custom-primary-color"
-            type="color"
-            value={primaryColorHex.toLowerCase()}
-            onChange={(event) =>
-              onChange({
-                primaryColorHex: event.target.value,
-                buttonColorHex,
-              })
-            }
-          />
-          <Label htmlFor="custom-button-color">Cor do botão (avançado)</Label>
-          <input
-            id="custom-button-color"
-            type="color"
-            value={buttonColorHex.toLowerCase()}
-            onChange={(event) =>
-              onChange({
-                primaryColorHex,
-                buttonColorHex: event.target.value,
-              })
-            }
-          />
+        <div className="border-border flex flex-col gap-3 rounded-lg border p-3">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="custom-primary-color">
+              Cor primária (avançado)
+            </Label>
+            <input
+              id="custom-primary-color"
+              type="color"
+              value={primaryColorHex.toLowerCase()}
+              onChange={(event) =>
+                onChange({
+                  primaryColorHex: event.target.value,
+                  buttonColorHex,
+                })
+              }
+              className={swatchInputClassName}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="custom-button-color">Cor do botão (avançado)</Label>
+            <input
+              id="custom-button-color"
+              type="color"
+              value={buttonColorHex.toLowerCase()}
+              onChange={(event) =>
+                onChange({
+                  primaryColorHex,
+                  buttonColorHex: event.target.value,
+                })
+              }
+              className={swatchInputClassName}
+            />
+          </div>
         </div>
       )}
     </fieldset>
