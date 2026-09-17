@@ -51,11 +51,18 @@ test('a reseller sees a real summary of their catalog on /dashboard', async ({
     }),
   ).toBeVisible();
 
-  const productsCard = page.getByText('Produtos ativos').locator('xpath=./..');
+  // Os cards de resumo viraram Card/CardHeader/CardContent (#65) — título e
+  // valor não são mais irmãos diretos, então sobe até o Card ancestral
+  // (data-slot="card") em vez de só um nível (xpath=./..).
+  const productsCard = page
+    .getByText('Produtos ativos')
+    .locator('xpath=ancestor::*[@data-slot="card"]');
   await expect(productsCard.getByText('1', { exact: true })).toBeVisible();
   await expect(productsCard.getByText(/sem foto/i)).toContainText('0');
 
-  const categoriesCard = page.getByText('Categorias').locator('xpath=./..');
+  const categoriesCard = page
+    .getByText('Categorias')
+    .locator('xpath=ancestor::*[@data-slot="card"]');
   await expect(categoriesCard.getByText('1', { exact: true })).toBeVisible();
 
   await expect(page.getByText(/não verificado/i)).toBeVisible();
