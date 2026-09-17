@@ -1,6 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Catalog } from '@/lib/api/adapters/catalog';
 import { daysSince } from '@/lib/date/days-since';
 import { useCategories } from '../hooks/use-categories';
@@ -34,7 +37,9 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
   }
 
   if (isError) {
-    return <p>Não foi possível carregar o resumo. Tente novamente.</p>;
+    return (
+      <p role="alert">Não foi possível carregar o resumo. Tente novamente.</p>
+    );
   }
 
   const me = meQuery.data;
@@ -59,84 +64,140 @@ export function DashboardOverview({ catalog }: { catalog: Catalog }) {
       : null;
 
   return (
-    <main>
-      {me && <h1>Olá, {greetingName(me.email, me.name)}!</h1>}
+    <main className="mx-auto flex max-w-5xl flex-col gap-6 p-4 md:p-6">
+      {me && (
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Olá, {greetingName(me.email, me.name)}!
+        </h1>
+      )}
 
-      <section aria-label="Resumo">
-        <article>
-          <h2>Produtos ativos</h2>
-          <p>{activeProducts.length}</p>
-          <p>{productsWithoutPhoto.length} sem foto</p>
-        </article>
-        <article>
-          <h2>Categorias</h2>
-          <p>{categories.length}</p>
-        </article>
-        <article>
-          <h2>WhatsApp</h2>
-          {catalog.isWhatsappVerified ? (
-            <p>
-              Verificado
-              {whatsappVerifiedDays !== null &&
-                ` há ${whatsappVerifiedDays} dias`}
+      <section
+        aria-label="Resumo"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Produtos ativos</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-1">
+            <p className="text-2xl font-semibold">{activeProducts.length}</p>
+            <p className="text-muted-foreground text-sm">
+              {productsWithoutPhoto.length} sem foto
             </p>
-          ) : (
-            <p>Não verificado</p>
-          )}
-        </article>
-        <article>
-          <h2>Última importação</h2>
-          {latestImport ? (
-            <p>
-              {latestImport.acceptedCount} aceitos, {latestImport.rejectedCount}{' '}
-              recusados
-            </p>
-          ) : (
-            <p>Nenhuma importação ainda.</p>
-          )}
-        </article>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Categorias</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-semibold">{categories.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>WhatsApp</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {catalog.isWhatsappVerified ? (
+              <p className="text-sm">
+                Verificado
+                {whatsappVerifiedDays !== null &&
+                  ` há ${whatsappVerifiedDays} dias`}
+              </p>
+            ) : (
+              <p className="text-muted-foreground text-sm">Não verificado</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Última importação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {latestImport ? (
+              <p className="text-sm">
+                {latestImport.acceptedCount} aceitos,{' '}
+                {latestImport.rejectedCount} recusados
+              </p>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                Nenhuma importação ainda.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </section>
 
-      <nav aria-label="Ações rápidas">
-        <Link href="/products">+ Adicionar produto</Link>
-        <Link href="/products">Importar CSV</Link>
-        <Link href="/whatsapp">Configurar WhatsApp</Link>
+      <nav aria-label="Ações rápidas" className="flex flex-wrap gap-2">
+        <Link
+          href="/products"
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          + Adicionar produto
+        </Link>
+        <Link
+          href="/products"
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Importar CSV
+        </Link>
+        <Link
+          href="/whatsapp"
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Configurar WhatsApp
+        </Link>
       </nav>
 
-      <table>
-        <caption>Produtos recentes</caption>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Categoria</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recentProducts.map((product) => {
-            const outOfStock =
-              product.quantityAvailable === 0 || !product.isOrderable;
-            const isHealthy =
-              !outOfStock && product.isVisible && product.isActive;
-            return (
-              <tr key={product.id}>
-                <td>{product.name}</td>
-                <td>
-                  {product.categoryId
-                    ? (categoryNameById.get(product.categoryId) ?? '—')
-                    : '—'}
-                </td>
-                <td>
-                  {isHealthy && <span>Ativo</span>}
-                  {outOfStock && <span>Sem estoque</span>}
-                  {!product.isVisible && <span>Não visível</span>}
-                  {!product.isActive && <span>Inativo</span>}
-                </td>
+      <Card>
+        <CardContent>
+          <table className="w-full text-left text-sm">
+            <caption className="mb-2 text-left font-medium">
+              Produtos recentes
+            </caption>
+            <thead>
+              <tr className="border-border text-muted-foreground border-b">
+                <th className="py-2 font-medium">Nome</th>
+                <th className="py-2 font-medium">Categoria</th>
+                <th className="py-2 font-medium">Status</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {recentProducts.map((product) => {
+                const outOfStock =
+                  product.quantityAvailable === 0 || !product.isOrderable;
+                const isHealthy =
+                  !outOfStock && product.isVisible && product.isActive;
+                return (
+                  <tr key={product.id} className="border-border border-b">
+                    <td className="py-2">{product.name}</td>
+                    <td className="py-2">
+                      {product.categoryId
+                        ? (categoryNameById.get(product.categoryId) ?? '—')
+                        : '—'}
+                    </td>
+                    <td className="py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {isHealthy && <Badge variant="outline">Ativo</Badge>}
+                        {outOfStock && (
+                          <Badge variant="destructive">Sem estoque</Badge>
+                        )}
+                        {!product.isVisible && (
+                          <Badge variant="secondary">Não visível</Badge>
+                        )}
+                        {!product.isActive && (
+                          <Badge variant="secondary">Inativo</Badge>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
     </main>
   );
 }
