@@ -45,8 +45,9 @@ export function LoginForm() {
           onSuccess: () => router.push('/dashboard'),
         }),
       )}
+      className="flex flex-col gap-4"
     >
-      <div>
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">E-mail</Label>
         <Input
           id="email"
@@ -55,9 +56,13 @@ export function LoginForm() {
           aria-describedby={errors.email ? 'email-error' : undefined}
           {...register('email')}
         />
-        {errors.email && <p id="email-error">{errors.email.message}</p>}
+        {errors.email && (
+          <p id="email-error" className="text-destructive text-sm">
+            {errors.email.message}
+          </p>
+        )}
       </div>
-      <div>
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="password">Senha</Label>
         <PasswordInput
           id="password"
@@ -66,13 +71,17 @@ export function LoginForm() {
           {...register('password')}
         />
         {errors.password && (
-          <p id="password-error">{errors.password.message}</p>
+          <p id="password-error" className="text-destructive text-sm">
+            {errors.password.message}
+          </p>
         )}
       </div>
       {loginErrorMessage(login.error) && (
-        <p role="alert">{loginErrorMessage(login.error)}</p>
+        <p role="alert" className="text-destructive text-sm">
+          {loginErrorMessage(login.error)}
+        </p>
       )}
-      <Button type="submit" disabled={login.isPending}>
+      <Button type="submit" disabled={login.isPending} className="w-full">
         Entrar
       </Button>
     </form>
