@@ -201,6 +201,51 @@ describe('ProductList', () => {
     expect(await screen.findByText(/sku já está em uso/i)).toBeInTheDocument();
   });
 
+  it('rolls back the uploaded asset when product creation fails, avoiding an orphan', async () => {
+    let deletedAssetId: string | null = null;
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products`, () =>
+        HttpResponse.json([]),
+      ),
+      http.post(`${API_BASE_URL}/api/v1/catalogs/catalog-1/assets`, () =>
+        HttpResponse.json({
+          id: 'asset1',
+          catalogId: 'catalog-1',
+          contentType: 'image/png',
+          byteSize: 4,
+          publicUrl: 'https://cdn.example.com/asset1.png',
+          createdAt: '2026-01-01T00:00:00Z',
+        }),
+      ),
+      http.post(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products`, () =>
+        HttpResponse.json({ message: 'SKU already in use' }, { status: 409 }),
+      ),
+      http.delete(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/assets/asset1`,
+        () => {
+          deletedAssetId = 'asset1';
+          return new HttpResponse(null, { status: 204 });
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await screen.findByText(/nenhum produto cadastrado/i);
+
+    await user.type(screen.getByLabelText(/nome/i), 'Perfume X');
+    await user.type(screen.getByLabelText(/sku/i), 'PRF-001');
+    const file = new File(['fake'], 'perfume.png', { type: 'image/png' });
+    await user.upload(screen.getByLabelText(/imagem/i), file);
+    await user.click(
+      screen.getByRole('button', { name: /adicionar produto/i }),
+    );
+
+    await screen.findByText(/sku já está em uso/i);
+    await waitFor(() => expect(deletedAssetId).toBe('asset1'));
+  });
+
   it('shows SKU, category, stock and status badges for each product', async () => {
     mockCategories([{ id: 'cat-1', name: 'Perfumes' }]);
     mockProducts([

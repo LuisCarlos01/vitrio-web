@@ -17,3 +17,12 @@ export async function uploadAsset(
   );
   return toAsset(await response.json());
 }
+
+export async function deleteAsset(
+  catalogId: string,
+  id: string,
+): Promise<void> {
+  await authenticatedFetch(`/api/v1/catalogs/${catalogId}/assets/${id}`, {
+    method: 'DELETE',
+  });
+}
