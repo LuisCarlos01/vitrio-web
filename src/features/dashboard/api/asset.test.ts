@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { API_BASE_URL } from '@/lib/api/config';
 import { server } from '@/mocks/server';
-import { uploadAsset } from './asset';
+import { deleteAsset, uploadAsset } from './asset';
 
 describe('uploadAsset', () => {
   it('uploads the file as multipart form-data and resolves with the asset', async () => {
@@ -38,5 +38,27 @@ describe('uploadAsset', () => {
       id: 'asset1',
       publicUrl: 'https://cdn.example.com/asset1.png',
     });
+  });
+});
+
+describe('deleteAsset', () => {
+  it('sends a DELETE to the catalog-scoped asset endpoint', async () => {
+    let received: { catalogId: string; id: string } | null = null;
+    server.use(
+      http.delete(
+        `${API_BASE_URL}/api/v1/catalogs/:catalogId/assets/:id`,
+        ({ params }) => {
+          received = {
+            catalogId: params.catalogId as string,
+            id: params.id as string,
+          };
+          return new HttpResponse(null, { status: 204 });
+        },
+      ),
+    );
+
+    await deleteAsset('cat-1', 'asset1');
+
+    expect(received).toEqual({ catalogId: 'cat-1', id: 'asset1' });
   });
 });

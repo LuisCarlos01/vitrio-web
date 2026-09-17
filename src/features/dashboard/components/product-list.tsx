@@ -20,6 +20,7 @@ import type { Category } from '@/lib/api/adapters/category';
 import type { Product } from '@/lib/api/adapters/product';
 import { useCategories } from '../hooks/use-categories';
 import { useCreateProduct } from '../hooks/use-create-product';
+import { useDeleteAsset } from '../hooks/use-delete-asset';
 import { useDeleteProduct } from '../hooks/use-delete-product';
 import { useProducts } from '../hooks/use-products';
 import { useUpdateProduct } from '../hooks/use-update-product';
@@ -51,6 +52,7 @@ function CreateProductForm({
   const { data: categories } = useCategories(catalogId);
   const uploadAsset = useUploadAsset();
   const createProduct = useCreateProduct();
+  const deleteAsset = useDeleteAsset();
   const [file, setFile] = useState<File | null>(null);
   const { register, handleSubmit, reset } = useForm<CreateProductValues>({
     resolver: zodResolver(createProductSchema),
@@ -81,6 +83,12 @@ function CreateProductForm({
               reset();
               setFile(null);
               onCreated?.();
+            },
+            // Produto não foi criado, então o asset recém-enviado ficaria órfão no
+            // S3/banco (vitrio-web#16) — desfaz o upload. Falha nesse rollback não é
+            // mostrada: o erro relevante pro usuário já é o de createProduct.
+            onError: () => {
+              deleteAsset.mutate({ catalogId, id: asset.id });
             },
           },
         );
