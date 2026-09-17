@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { contrastTextColor } from '@/lib/color/contrast-text-color';
@@ -46,15 +47,31 @@ function CreateCatalogForm() {
   });
 
   return (
-    <form onSubmit={handleSubmit((values) => createCatalog.mutate(values))}>
-      <div>
-        <Label htmlFor="create-name">Nome da sua loja</Label>
-        <Input id="create-name" {...register('name')} />
-      </div>
-      <Button type="submit" disabled={createCatalog.isPending}>
-        Criar loja
-      </Button>
-    </form>
+    <Card className="mx-auto max-w-md">
+      <CardHeader>
+        <CardTitle>
+          <h2>Crie sua loja</h2>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form
+          onSubmit={handleSubmit((values) => createCatalog.mutate(values))}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="create-name">Nome da sua loja</Label>
+            <Input id="create-name" {...register('name')} />
+          </div>
+          <Button
+            type="submit"
+            disabled={createCatalog.isPending}
+            className="w-fit"
+          >
+            Criar loja
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -140,68 +157,93 @@ export function CatalogForm() {
           { onSuccess: () => setPendingLogoAssetId(null) },
         );
       })}
+      className="flex flex-col gap-6"
     >
-      <section>
-        <h2>Identidade</h2>
-        <div>
-          <Label>Slug</Label>
-          <p>{catalog.slug}</p>
-        </div>
-        <div>
-          <Label htmlFor="name">Nome</Label>
-          <Input id="name" {...register('name')} />
-        </div>
-        <div>
-          {displayedLogoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, mesmo padrão do storefront
-            <img src={displayedLogoUrl} alt="Logo atual" />
-          )}
-          <Label htmlFor="logo">Logo</Label>
-          <input
-            id="logo"
-            type="file"
-            accept="image/*"
-            onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="instagramHandle">Instagram</Label>
-          <Input id="instagramHandle" {...register('instagramHandle')} />
-        </div>
-      </section>
-      <section>
-        <h2>Cor da loja</h2>
-        <ColorPalettePicker
-          primaryColorHex={primaryColorHex ?? ''}
-          buttonColorHex={buttonColorHex ?? ''}
-          onChange={(colors) => {
-            setValue('primaryColorHex', colors.primaryColorHex, {
-              shouldDirty: true,
-            });
-            setValue('buttonColorHex', colors.buttonColorHex, {
-              shouldDirty: true,
-            });
-          }}
-        />
-        {hasLowContrast && (
-          <p>Essa combinação de cores pode ficar difícil de ler.</p>
-        )}
-        <div>
-          <p>Preview do botão da vitrine</p>
-          <span
-            style={{
-              backgroundColor: buttonColorHex,
-              color: contrastTextColor(buttonColorHex || '#000000'),
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Identidade</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label>Slug</Label>
+            <p className="text-muted-foreground text-sm">{catalog.slug}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="name">Nome</Label>
+            <Input id="name" {...register('name')} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {displayedLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, mesmo padrão do storefront
+              <img
+                src={displayedLogoUrl}
+                alt="Logo atual"
+                className="border-border size-16 rounded-md border object-cover"
+              />
+            )}
+            <Label htmlFor="logo">Logo</Label>
+            <input
+              id="logo"
+              type="file"
+              accept="image/*"
+              onChange={(event) => setLogoFile(event.target.files?.[0] ?? null)}
+              className="text-muted-foreground text-sm"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="instagramHandle">Instagram</Label>
+            <Input id="instagramHandle" {...register('instagramHandle')} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2>Cor da loja</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <ColorPalettePicker
+            primaryColorHex={primaryColorHex ?? ''}
+            buttonColorHex={buttonColorHex ?? ''}
+            onChange={(colors) => {
+              setValue('primaryColorHex', colors.primaryColorHex, {
+                shouldDirty: true,
+              });
+              setValue('buttonColorHex', colors.buttonColorHex, {
+                shouldDirty: true,
+              });
             }}
-          >
-            Falar no WhatsApp
-          </span>
-        </div>
-      </section>
+          />
+          {hasLowContrast && (
+            <p role="alert" className="text-destructive text-sm">
+              Essa combinação de cores pode ficar difícil de ler.
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium">Preview do botão da vitrine</p>
+            <span
+              className="inline-flex w-fit items-center rounded-lg px-4 py-2 text-sm font-medium"
+              style={{
+                backgroundColor: buttonColorHex,
+                color: contrastTextColor(buttonColorHex || '#000000'),
+              }}
+            >
+              Falar no WhatsApp
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
       {updateCatalog.isError && (
-        <p>Não foi possível salvar. Tente novamente.</p>
+        <p role="alert" className="text-destructive text-sm">
+          Não foi possível salvar. Tente novamente.
+        </p>
       )}
-      <Button type="submit" disabled={isSaving}>
+      <Button type="submit" disabled={isSaving} className="w-fit">
         Salvar dados da loja
       </Button>
     </form>
