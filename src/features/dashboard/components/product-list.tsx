@@ -219,6 +219,9 @@ function EditProductDialog({
               Salvar produto
             </Button>
           </DialogFooter>
+          {updateProduct.isError && (
+            <p role="alert">Não foi possível salvar o produto.</p>
+          )}
         </form>
       </DialogContent>
     </Dialog>
@@ -258,6 +261,9 @@ function DeleteProductDialog({
             Confirmar exclusão
           </Button>
         </DialogFooter>
+        {deleteProduct.isError && (
+          <p role="alert">Não foi possível excluir o produto.</p>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -368,7 +374,7 @@ function CreateProductSection({ catalogId }: { catalogId: string }) {
 }
 
 export function ProductList({ catalogId }: { catalogId: string }) {
-  const { data: products, isLoading } = useProducts(catalogId);
+  const { data: products, isLoading, isError } = useProducts(catalogId);
   const { data: categories } = useCategories(catalogId);
   const categoryNameById = new Map(
     (categories ?? []).map((category: Category) => [
@@ -379,6 +385,14 @@ export function ProductList({ catalogId }: { catalogId: string }) {
 
   if (isLoading) {
     return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p role="alert">
+        Não foi possível carregar os produtos. Tente novamente.
+      </p>
+    );
   }
 
   return (

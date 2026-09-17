@@ -59,7 +59,7 @@ function CreateCatalogForm() {
 }
 
 export function CatalogForm() {
-  const { data: catalog, isLoading } = useCatalog();
+  const { data: catalog, isLoading, isError } = useCatalog();
   const updateCatalog = useUpdateCatalog();
   const uploadAsset = useUploadAsset();
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -104,6 +104,14 @@ export function CatalogForm() {
 
   if (isLoading) {
     return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p role="alert">
+        Não foi possível carregar os dados da loja. Tente novamente.
+      </p>
+    );
   }
 
   if (!catalog) {

@@ -24,7 +24,9 @@ type RawProduct = {
 };
 
 function renderProductList() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <ProductList catalogId="catalog-1" />
@@ -305,5 +307,66 @@ describe('ProductList', () => {
     expect(
       screen.queryByRole('button', { name: /ver foto de perfume x/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('shows a query error, not the empty state, when the products request fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    renderProductList();
+
+    expect(
+      await screen.findByText(/não foi possível carregar os produtos/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/nenhum produto cadastrado/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows an error message when saving a product edit fails', async () => {
+    mockProducts([rawProduct()]);
+    server.use(
+      http.patch(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    await user.click(screen.getByRole('button', { name: /salvar produto/i }));
+
+    expect(
+      await screen.findByText(/não foi possível salvar o produto/i),
+    ).toBeInTheDocument();
+  });
+
+  it('shows an error message when deleting a product fails', async () => {
+    mockProducts([rawProduct()]);
+    server.use(
+      http.delete(`${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /excluir perfume x/i }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: /confirmar exclusão/i }),
+    );
+
+    expect(
+      await screen.findByText(/não foi possível excluir o produto/i),
+    ).toBeInTheDocument();
   });
 });

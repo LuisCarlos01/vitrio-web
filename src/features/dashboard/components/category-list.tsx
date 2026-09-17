@@ -98,6 +98,9 @@ function EditCategoryDialog({
               Salvar edição
             </Button>
           </DialogFooter>
+          {updateCategory.isError && (
+            <p role="alert">Não foi possível salvar a categoria.</p>
+          )}
         </form>
       </DialogContent>
     </Dialog>
@@ -141,6 +144,9 @@ function DeleteCategoryDialog({
             Confirmar exclusão
           </Button>
         </DialogFooter>
+        {deleteCategory.isError && (
+          <p role="alert">Não foi possível excluir a categoria.</p>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -191,7 +197,7 @@ function CategoryRow({
 }
 
 export function CategoryList({ catalogId }: { catalogId: string }) {
-  const { data: categories, isLoading } = useCategories(catalogId);
+  const { data: categories, isLoading, isError } = useCategories(catalogId);
   const { data: products } = useProducts(catalogId);
   const productCountByCategoryId = new Map<string, number>();
   for (const product of products ?? []) {
@@ -204,6 +210,14 @@ export function CategoryList({ catalogId }: { catalogId: string }) {
 
   if (isLoading) {
     return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p role="alert">
+        Não foi possível carregar as categorias. Tente novamente.
+      </p>
+    );
   }
 
   return (

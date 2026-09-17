@@ -5,10 +5,18 @@ import { ProductList } from '@/features/dashboard/components/product-list';
 import { useCatalog } from '@/features/dashboard/hooks/use-catalog';
 
 export default function ProductsPage() {
-  const { data: catalog, isLoading } = useCatalog();
+  const { data: catalog, isLoading, isError } = useCatalog();
 
   if (isLoading) {
     return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p role="alert">
+        Não foi possível carregar os dados da loja. Tente novamente.
+      </p>
+    );
   }
 
   if (!catalog) {

@@ -24,7 +24,9 @@ const catalogDto = {
 };
 
 function renderCatalogForm() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <CatalogForm />
@@ -48,6 +50,22 @@ describe('CatalogForm', () => {
     renderCatalogForm();
 
     expect(screen.getByText(/carregando/i)).toBeInTheDocument();
+  });
+
+  it('shows a query error, not the create-store form, when the catalog request fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+    renderCatalogForm();
+
+    expect(
+      await screen.findByText(/não foi possível carregar os dados da loja/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /criar loja/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the catalog's current data once loaded, with slug read-only", async () => {

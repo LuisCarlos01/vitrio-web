@@ -26,7 +26,9 @@ function catalogDto(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 function renderWhatsappForm() {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={queryClient}>
       <WhatsappForm />
@@ -39,6 +41,20 @@ describe('WhatsappForm', () => {
     useAuthStore
       .getState()
       .setSession({ accessToken: 'abc', refreshToken: 'def' });
+  });
+
+  it('shows a query error, not "create your store", when the catalog request fails', async () => {
+    server.use(
+      http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+        HttpResponse.json({ message: 'Internal error' }, { status: 500 }),
+      ),
+    );
+    renderWhatsappForm();
+
+    expect(
+      await screen.findByText(/não foi possível carregar os dados da loja/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/crie sua loja/i)).not.toBeInTheDocument();
   });
 
   it('shows no number configured and no verify button when the catalog has none', async () => {

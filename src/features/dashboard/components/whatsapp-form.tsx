@@ -20,7 +20,7 @@ const whatsappFormSchema = z.object({
 type WhatsappFormValues = z.infer<typeof whatsappFormSchema>;
 
 export function WhatsappForm() {
-  const { data: catalog, isLoading } = useCatalog();
+  const { data: catalog, isLoading, isError } = useCatalog();
   const updateWhatsapp = useUpdateWhatsapp();
   const verifyWhatsapp = useVerifyWhatsapp();
   const { register, handleSubmit, reset } = useForm<WhatsappFormValues>({
@@ -33,8 +33,20 @@ export function WhatsappForm() {
     }
   }, [catalog, reset]);
 
-  if (isLoading || !catalog) {
+  if (isLoading) {
     return <p>Carregando...</p>;
+  }
+
+  if (isError) {
+    return (
+      <p role="alert">
+        Não foi possível carregar os dados da loja. Tente novamente.
+      </p>
+    );
+  }
+
+  if (!catalog) {
+    return <p>Crie sua loja antes de configurar o WhatsApp.</p>;
   }
 
   return (
