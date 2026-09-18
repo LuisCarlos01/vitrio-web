@@ -10,8 +10,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const catalog = await getPublicCatalog(slug).catch(() => null);
-  if (!catalog) return {};
+  let catalog;
+  try {
+    catalog = await getPublicCatalog(slug);
+  } catch (error) {
+    // Loja inexistente vira preview genérico; qualquer outra falha (rede, 5xx)
+    // sobe igual ao componente de página, em vez de mascarar o erro como "sem metadata".
+    if (error instanceof ApiError && error.status === 404) return {};
+    throw error;
+  }
 
   return {
     title: catalog.name,
