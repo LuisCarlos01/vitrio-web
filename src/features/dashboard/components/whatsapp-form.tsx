@@ -133,6 +133,7 @@ export function WhatsappForm() {
             Preview do botão pra sua vitrine
           </p>
           <WhatsappFloatingButton
+            storeName={catalog.name}
             whatsappNumber={catalog.whatsappNumber}
             buttonColorHex={resolveButtonColorHex(catalog)}
           />

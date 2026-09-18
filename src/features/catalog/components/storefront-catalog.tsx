@@ -136,6 +136,7 @@ export function StorefrontCatalog({
               </button>
               <CartDrawer
                 slug={slug}
+                storeName={catalog.name}
                 whatsappNumber={catalog.whatsappNumber}
                 variant={hasBanner ? 'overlay' : 'default'}
                 floating={hasBanner && !bannerInView}
@@ -193,6 +194,7 @@ export function StorefrontCatalog({
       />
       <div className="fixed right-4 bottom-4 z-40">
         <WhatsappFloatingButton
+          storeName={catalog.name}
           whatsappNumber={catalog.whatsappNumber}
           buttonColorHex={catalog.buttonColorHex}
         />

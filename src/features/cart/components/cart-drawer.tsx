@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ShoppingBagIcon, Trash2Icon, XIcon } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from 'cn';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,11 +14,13 @@ const EMPTY_ITEMS: never[] = [];
 
 export function CartDrawer({
   slug,
+  storeName,
   whatsappNumber,
   variant = 'default',
   floating = false,
 }: {
   slug: string;
+  storeName: string;
   whatsappNumber: string | null;
   variant?: 'default' | 'overlay';
   floating?: boolean;
@@ -112,10 +115,11 @@ export function CartDrawer({
                       className="border-border flex items-center gap-3 border-b pb-3"
                     >
                       {item.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- foto vem de um host externo (S3), mesmo padrão do resto da vitrine
-                        <img
+                        <Image
                           src={item.imageUrl}
                           alt=""
+                          width={56}
+                          height={56}
                           className="border-border size-14 shrink-0 rounded-lg border object-cover"
                         />
                       ) : (
@@ -145,7 +149,11 @@ export function CartDrawer({
                 </ul>
                 {whatsappNumber ? (
                   <a
-                    href={buildWhatsappCheckoutUrl(whatsappNumber, items)}
+                    href={buildWhatsappCheckoutUrl(
+                      whatsappNumber,
+                      storeName,
+                      items,
+                    )}
                     target="_blank"
                     rel="noreferrer"
                     className="text-primary-foreground mt-3 flex items-center justify-center rounded-lg bg-[var(--tenant-button)] px-4 py-2.5 text-sm font-medium"

@@ -1,11 +1,13 @@
 import { contrastTextColor } from '@/lib/color/contrast-text-color';
 
 type WhatsappFloatingButtonProps = {
+  storeName: string;
   whatsappNumber: string | null;
   buttonColorHex: string;
 };
 
 export function WhatsappFloatingButton({
+  storeName,
   whatsappNumber,
   buttonColorHex,
 }: WhatsappFloatingButtonProps) {
@@ -14,7 +16,9 @@ export function WhatsappFloatingButton({
   }
 
   const digits = whatsappNumber.replace(/\D/g, '');
-  const text = encodeURIComponent('Olá! Gostaria de saber mais sobre a loja.');
+  const text = encodeURIComponent(
+    `Olá! Encontrei a loja ${storeName} e gostaria de mais informações sobre os produtos.`,
+  );
 
   return (
     <a
