@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useId, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
 import { FileInput } from '@/components/ui/file-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api/errors';
 import type { Category } from '@/lib/api/adapters/category';
 import type { Product } from '@/lib/api/adapters/product';
@@ -156,6 +157,9 @@ function CreateProductForm({
 }
 
 const editProductSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  sku: z.string().optional(),
+  description: z.string().optional(),
   quantityAvailable: z.coerce.number().min(0),
   isVisible: z.boolean(),
   isOrderable: z.boolean(),
@@ -164,6 +168,44 @@ const editProductSchema = z.object({
 
 type EditProductInput = z.input<typeof editProductSchema>;
 type EditProductOutput = z.output<typeof editProductSchema>;
+
+function EditProductToggleRow({
+  id,
+  label,
+  hint,
+  control,
+  name,
+}: {
+  id: string;
+  label: string;
+  hint: string;
+  control: ReturnType<
+    typeof useForm<EditProductInput, unknown, EditProductOutput>
+  >['control'];
+  name: 'isVisible' | 'isOrderable' | 'isActive';
+}) {
+  return (
+    <div className="border-border flex items-center justify-between gap-4 rounded-lg border p-3">
+      <div className="flex flex-col gap-0.5">
+        <Label htmlFor={id} className="font-normal">
+          {label}
+        </Label>
+        <p className="text-muted-foreground text-xs">{hint}</p>
+      </div>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Switch
+            id={id}
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+        )}
+      />
+    </div>
+  );
+}
 
 function EditProductDialog({
   catalogId,
@@ -177,13 +219,16 @@ function EditProductDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const updateProduct = useUpdateProduct();
-  const { register, handleSubmit } = useForm<
+  const { register, control, handleSubmit } = useForm<
     EditProductInput,
     unknown,
     EditProductOutput
   >({
     resolver: zodResolver(editProductSchema),
     defaultValues: {
+      name: product.name,
+      sku: product.sku ?? '',
+      description: product.description ?? '',
       quantityAvailable: product.quantityAvailable,
       isVisible: product.isVisible,
       isOrderable: product.isOrderable,
@@ -207,6 +252,24 @@ function EditProductDialog({
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`name-${product.id}`}>Nome</Label>
+            <Input id={`name-${product.id}`} {...register('name')} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`sku-${product.id}`}>SKU</Label>
+            <Input id={`sku-${product.id}`} {...register('sku')} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`description-${product.id}`}>Descrição</Label>
+            <Input
+              id={`description-${product.id}`}
+              {...register('description')}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor={`quantity-${product.id}`}>
               Quantidade disponível
             </Label>
@@ -218,44 +281,27 @@ function EditProductDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label
-              htmlFor={`visible-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`visible-${product.id}`}
-                type="checkbox"
-                {...register('isVisible')}
-                className="accent-primary size-4"
-              />
-              Visível
-            </Label>
-
-            <Label
-              htmlFor={`orderable-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`orderable-${product.id}`}
-                type="checkbox"
-                {...register('isOrderable')}
-                className="accent-primary size-4"
-              />
-              Disponível para compra
-            </Label>
-
-            <Label
-              htmlFor={`active-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`active-${product.id}`}
-                type="checkbox"
-                {...register('isActive')}
-                className="accent-primary size-4"
-              />
-              Ativo
-            </Label>
+            <EditProductToggleRow
+              id={`visible-${product.id}`}
+              label="Visível"
+              hint="Aparece na vitrine pública."
+              control={control}
+              name="isVisible"
+            />
+            <EditProductToggleRow
+              id={`orderable-${product.id}`}
+              label="Disponível para compra"
+              hint="Cliente consegue adicionar ao carrinho."
+              control={control}
+              name="isOrderable"
+            />
+            <EditProductToggleRow
+              id={`active-${product.id}`}
+              label="Ativo"
+              hint="Desligar remove o produto de tudo, dashboard e vitrine."
+              control={control}
+              name="isActive"
+            />
           </div>
           {!product.isActive && (
             <p className="text-muted-foreground text-sm">
