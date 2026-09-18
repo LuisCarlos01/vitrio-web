@@ -245,7 +245,19 @@ function EditProductDialog({
         <form
           onSubmit={handleSubmit((values) => {
             updateProduct.mutate(
-              { catalogId, id: product.id, payload: values },
+              {
+                catalogId,
+                id: product.id,
+                payload: {
+                  ...values,
+                  // Campo vazio nunca deve virar "" no banco — o backend trata só
+                  // `null`/omitido como "não alterar", e "" colide com outro
+                  // produto sem SKU na checagem de duplicidade (mesmo padrão do
+                  // CreateProductForm).
+                  sku: values.sku || undefined,
+                  description: values.description || undefined,
+                },
+              },
               { onSuccess: () => onOpenChange(false) },
             );
           })}

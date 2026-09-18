@@ -168,6 +168,42 @@ describe('ProductList', () => {
     expect(product.description).toBe('Amadeirado');
   });
 
+  it('never sends an empty-string sku/description when the product never had one — the API treats "" as a real value, not "unchanged"', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+    let product: RawProduct = rawProduct({
+      id: 'p1',
+      name: 'Perfume X',
+      sku: null,
+      description: null,
+    });
+    mockProducts([product]);
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`,
+        async ({ request }) => {
+          capturedBody = (await request.json()) as Record<string, unknown>;
+          product = { ...product, ...capturedBody };
+          return HttpResponse.json(product);
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    const dialog = screen.getByRole('dialog', { name: /editar perfume x/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: /salvar produto/i }),
+    );
+
+    await waitFor(() => expect(capturedBody).not.toBeNull());
+    expect(capturedBody).not.toHaveProperty('sku');
+    expect(capturedBody).not.toHaveProperty('description');
+  });
+
   it('does not silently restore visibility/orderability when reactivating a product', async () => {
     let product: RawProduct = {
       id: 'p1',
