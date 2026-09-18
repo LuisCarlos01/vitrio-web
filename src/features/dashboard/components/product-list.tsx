@@ -221,11 +221,12 @@ function EditProductDialog({
 }) {
   const { data: categories } = useCategories(catalogId);
   const updateProduct = useUpdateProduct();
-  const { register, control, handleSubmit } = useForm<
-    EditProductInput,
-    unknown,
-    EditProductOutput
-  >({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditProductInput, unknown, EditProductOutput>({
     resolver: zodResolver(editProductSchema),
     defaultValues: {
       name: product.name,
@@ -273,7 +274,23 @@ function EditProductDialog({
         >
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`name-${product.id}`}>Nome</Label>
-            <Input id={`name-${product.id}`} {...register('name')} />
+            <Input
+              id={`name-${product.id}`}
+              aria-invalid={!!errors.name}
+              aria-describedby={
+                errors.name ? `name-${product.id}-error` : undefined
+              }
+              {...register('name')}
+            />
+            {errors.name && (
+              <p
+                id={`name-${product.id}-error`}
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {errors.name.message}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
