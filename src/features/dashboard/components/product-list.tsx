@@ -29,6 +29,9 @@ import { useUpdateProduct } from '../hooks/use-update-product';
 import { useUploadAsset } from '../hooks/use-upload-asset';
 import { ProductPhotoViewer } from './product-photo-viewer';
 
+const selectClassName =
+  'border-input h-8 w-full rounded-lg border bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
+
 const createProductSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   sku: z.string().optional(),
@@ -63,9 +66,6 @@ function CreateProductForm({
 
   const isPending = uploadAsset.isPending || createProduct.isPending;
   const error = createProduct.error;
-
-  const selectClassName =
-    'border-input h-8 w-full rounded-lg border bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
 
   return (
     <form
@@ -160,6 +160,7 @@ const editProductSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   sku: z.string().optional(),
   description: z.string().optional(),
+  categoryId: z.string().optional(),
   quantityAvailable: z.coerce.number().min(0),
   isVisible: z.boolean(),
   isOrderable: z.boolean(),
@@ -218,6 +219,7 @@ function EditProductDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { data: categories } = useCategories(catalogId);
   const updateProduct = useUpdateProduct();
   const { register, control, handleSubmit } = useForm<
     EditProductInput,
@@ -229,6 +231,7 @@ function EditProductDialog({
       name: product.name,
       sku: product.sku ?? '',
       description: product.description ?? '',
+      categoryId: product.categoryId ?? '',
       quantityAvailable: product.quantityAvailable,
       isVisible: product.isVisible,
       isOrderable: product.isOrderable,
@@ -256,6 +259,11 @@ function EditProductDialog({
                   // CreateProductForm).
                   sku: values.sku || undefined,
                   description: values.description || undefined,
+                  // Mesma regra vale pra categoria: selecionar "Sem categoria"
+                  // aqui não remove uma categoria já atribuída (a API não tem
+                  // como distinguir "não mexer" de "limpar"), só evita mandar
+                  // um valor novo quando o produto já não tinha nenhuma.
+                  categoryId: values.categoryId || undefined,
                 },
               },
               { onSuccess: () => onOpenChange(false) },
@@ -280,6 +288,24 @@ function EditProductDialog({
               {...register('description')}
             />
           </div>
+
+          {categories && categories.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`category-${product.id}`}>Categoria</Label>
+              <select
+                id={`category-${product.id}`}
+                {...register('categoryId')}
+                className={selectClassName}
+              >
+                <option value="">Sem categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`quantity-${product.id}`}>

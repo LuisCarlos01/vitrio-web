@@ -168,6 +168,47 @@ describe('ProductList', () => {
     expect(product.description).toBe('Amadeirado');
   });
 
+  it('lets a reseller move a product to a different category from the edit dialog', async () => {
+    let product: RawProduct = rawProduct({
+      id: 'p1',
+      name: 'Perfume X',
+      categoryId: 'cat-1',
+    });
+    mockProducts([product]);
+    mockCategories([
+      { id: 'cat-1', name: 'Perfumes' },
+      { id: 'cat-2', name: 'Maquiagem' },
+    ]);
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`,
+        async ({ request }) => {
+          const patch = (await request.json()) as Partial<RawProduct>;
+          product = { ...product, ...patch };
+          return HttpResponse.json(product);
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    const dialog = screen.getByRole('dialog', { name: /editar perfume x/i });
+
+    const categorySelect = within(dialog).getByLabelText(/^categoria$/i);
+    expect(categorySelect).toHaveValue('cat-1');
+
+    await user.selectOptions(categorySelect, 'cat-2');
+    await user.click(
+      within(dialog).getByRole('button', { name: /salvar produto/i }),
+    );
+
+    await waitFor(() => expect(product.categoryId).toBe('cat-2'));
+  });
+
   it('never sends an empty-string sku/description when the product never had one — the API treats "" as a real value, not "unchanged"', async () => {
     let capturedBody: Record<string, unknown> | null = null;
     let product: RawProduct = rawProduct({
