@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { cn } from 'cn';
 
 type StorefrontHeaderProps = {
@@ -38,10 +39,11 @@ export function StorefrontHeader({
   return (
     <div className="flex min-w-0 items-center gap-3">
       {logoUrl && (
-        // eslint-disable-next-line @next/next/no-img-element -- logo vem de um host externo (S3) por catálogo, não faz sentido pré-otimizar em build
-        <img
+        <Image
           src={logoUrl}
           alt={name}
+          width={44}
+          height={44}
           className={cn(
             'size-11 shrink-0 rounded-xl border object-cover',
             isOverlay ? 'border-primary-foreground/40' : 'border-border',

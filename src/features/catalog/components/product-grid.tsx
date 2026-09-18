@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import type {
   PublicCategory,
   PublicProduct,
@@ -29,11 +30,12 @@ function ProductImage({ product }: { product: PublicProduct }) {
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- protótipo de vitrine, otimização de imagem fica pra depois
-    <img
+    <Image
       src={product.imageUrl}
       alt={product.name}
-      className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      fill
+      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+      className="object-cover transition-transform duration-300 group-hover:scale-105"
     />
   );
 }
@@ -56,7 +58,7 @@ function ProductCard({
 
   return (
     <li className="group border-border bg-card flex flex-col overflow-hidden rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
-      <div className="relative overflow-hidden">
+      <div className="relative aspect-square overflow-hidden">
         <ProductImage product={product} />
         {outOfStock && (
           <Badge

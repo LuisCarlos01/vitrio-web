@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { XIcon } from 'lucide-react';
+import Image from 'next/image';
 import type { PublicProduct } from '@/lib/api/adapters/public-catalog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -48,12 +49,15 @@ export function ProductDetailModal({
           <XIcon />
         </Button>
         {product.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- protótipo de vitrine, otimização de imagem fica pra depois
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="aspect-square w-full rounded-xl object-cover"
-          />
+          <div className="relative aspect-square w-full overflow-hidden rounded-xl">
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              sizes="(min-width: 640px) 384px, 100vw"
+              className="object-cover"
+            />
+          </div>
         )}
         <div className="flex flex-col gap-2 pt-3">
           {categoryName && <Badge variant="secondary">{categoryName}</Badge>}

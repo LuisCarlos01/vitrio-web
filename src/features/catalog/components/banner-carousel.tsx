@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import Image from 'next/image';
 
 export type BannerSlide = {
   id: string;
@@ -33,12 +34,22 @@ export function BannerCarousel({ slides }: { slides: BannerSlide[] }) {
   }
 
   return (
-    <div
-      className="relative flex h-[340px] items-center justify-start bg-cover bg-center px-6 sm:h-[440px] sm:px-12 lg:h-[560px] lg:px-16"
-      style={{
-        backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15) 60%), linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.45)), url(${currentSlide.imageUrl})`,
-      }}
-    >
+    <div className="relative flex h-[340px] items-center justify-start overflow-hidden px-6 sm:h-[440px] sm:px-12 lg:h-[560px] lg:px-16">
+      <Image
+        src={currentSlide.imageUrl}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(90deg, rgba(0,0,0,0.55), rgba(0,0,0,0.15) 60%), linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.45))',
+        }}
+      />
       <button
         type="button"
         aria-label="Banner anterior"
