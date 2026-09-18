@@ -6,6 +6,7 @@ describe('WhatsappFloatingButton', () => {
   it('renders a link to a general (non-product) WhatsApp chat using the store number', () => {
     render(
       <WhatsappFloatingButton
+        storeName="Loja da Ana"
         whatsappNumber="+5511999999999"
         buttonColorHex="#111827"
       />,
@@ -18,9 +19,25 @@ describe('WhatsappFloatingButton', () => {
     );
   });
 
+  it('names the store in the prefilled message', () => {
+    render(
+      <WhatsappFloatingButton
+        storeName="Loja da Ana"
+        whatsappNumber="+5511999999999"
+        buttonColorHex="#111827"
+      />,
+    );
+
+    const link = screen.getByRole('link', { name: /Falar no WhatsApp/ });
+    expect(decodeURIComponent(link.getAttribute('href') ?? '')).toContain(
+      'Loja da Ana',
+    );
+  });
+
   it('uses the store buttonColorHex as background, never the WhatsApp brand green', () => {
     render(
       <WhatsappFloatingButton
+        storeName="Loja da Ana"
         whatsappNumber="+5511999999999"
         buttonColorHex="#111827"
       />,
@@ -33,6 +50,7 @@ describe('WhatsappFloatingButton', () => {
   it('picks a readable text color for the chosen background', () => {
     render(
       <WhatsappFloatingButton
+        storeName="Loja da Ana"
         whatsappNumber="+5511999999999"
         buttonColorHex="#111827"
       />,
@@ -44,7 +62,11 @@ describe('WhatsappFloatingButton', () => {
 
   it('renders nothing when the store WhatsApp number is unverified (null)', () => {
     render(
-      <WhatsappFloatingButton whatsappNumber={null} buttonColorHex="#111827" />,
+      <WhatsappFloatingButton
+        storeName="Loja da Ana"
+        whatsappNumber={null}
+        buttonColorHex="#111827"
+      />,
     );
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();

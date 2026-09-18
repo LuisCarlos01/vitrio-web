@@ -80,4 +80,56 @@ describe('authenticatedFetch', () => {
 
     vi.unstubAllEnvs();
   });
+
+  describe('on a 401 response', () => {
+    it('refreshes the session and retries the request once with the new access token', async () => {
+      useAuthStore
+        .getState()
+        .setSession({ accessToken: 'expired', refreshToken: 'refresh-1' });
+
+      let attempt = 0;
+      const receivedAuthHeaders: (string | null)[] = [];
+      server.use(
+        http.get(`${API_BASE_URL}/api/v1/catalogs`, ({ request }) => {
+          attempt += 1;
+          receivedAuthHeaders.push(request.headers.get('authorization'));
+          return attempt === 1
+            ? HttpResponse.json({ message: 'expired' }, { status: 401 })
+            : HttpResponse.json([{ id: 'cat-1' }]);
+        }),
+        http.post(`${API_BASE_URL}/api/v1/auth/refresh`, () =>
+          HttpResponse.json({
+            accessToken: 'fresh',
+            refreshToken: 'refresh-2',
+          }),
+        ),
+      );
+
+      const response = await authenticatedFetch('/api/v1/catalogs');
+
+      expect(response.ok).toBe(true);
+      expect(receivedAuthHeaders).toEqual(['Bearer expired', 'Bearer fresh']);
+      expect(useAuthStore.getState().accessToken).toBe('fresh');
+    });
+
+    it('clears the session and throws when the refresh token is also invalid', async () => {
+      useAuthStore
+        .getState()
+        .setSession({ accessToken: 'expired', refreshToken: 'refresh-1' });
+
+      server.use(
+        http.get(`${API_BASE_URL}/api/v1/catalogs`, () =>
+          HttpResponse.json({ message: 'expired' }, { status: 401 }),
+        ),
+        http.post(`${API_BASE_URL}/api/v1/auth/refresh`, () =>
+          HttpResponse.json({ message: 'invalid' }, { status: 401 }),
+        ),
+      );
+
+      await expect(authenticatedFetch('/api/v1/catalogs')).rejects.toThrow();
+
+      expect(useAuthStore.getState().accessToken).toBeNull();
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    });
+  });
 });

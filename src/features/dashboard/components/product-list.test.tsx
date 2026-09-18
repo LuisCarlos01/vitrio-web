@@ -119,6 +119,132 @@ describe('ProductList', () => {
     expect(screen.getByText(/sem estoque/i)).toBeInTheDocument();
   });
 
+  it('pre-fills name/sku/description in the edit dialog and saves the edited values', async () => {
+    let product: RawProduct = rawProduct({
+      id: 'p1',
+      name: 'Perfume X',
+      sku: 'PRF-001',
+      description: 'Cítrico',
+    });
+    mockProducts([product]);
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`,
+        async ({ request }) => {
+          const patch = (await request.json()) as Partial<RawProduct>;
+          product = { ...product, ...patch };
+          return HttpResponse.json(product);
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    const dialog = screen.getByRole('dialog', { name: /editar perfume x/i });
+
+    const nameInput = within(dialog).getByLabelText(/^nome$/i);
+    const skuInput = within(dialog).getByLabelText(/^sku$/i);
+    const descriptionInput = within(dialog).getByLabelText(/^descrição$/i);
+    expect(nameInput).toHaveValue('Perfume X');
+    expect(skuInput).toHaveValue('PRF-001');
+    expect(descriptionInput).toHaveValue('Cítrico');
+
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Perfume Y');
+    await user.clear(skuInput);
+    await user.type(skuInput, 'PRF-002');
+    await user.clear(descriptionInput);
+    await user.type(descriptionInput, 'Amadeirado');
+    await user.click(
+      within(dialog).getByRole('button', { name: /salvar produto/i }),
+    );
+
+    await waitFor(() => expect(product.name).toBe('Perfume Y'));
+    expect(product.sku).toBe('PRF-002');
+    expect(product.description).toBe('Amadeirado');
+  });
+
+  it('lets a reseller move a product to a different category from the edit dialog', async () => {
+    let product: RawProduct = rawProduct({
+      id: 'p1',
+      name: 'Perfume X',
+      categoryId: 'cat-1',
+    });
+    mockProducts([product]);
+    mockCategories([
+      { id: 'cat-1', name: 'Perfumes' },
+      { id: 'cat-2', name: 'Maquiagem' },
+    ]);
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`,
+        async ({ request }) => {
+          const patch = (await request.json()) as Partial<RawProduct>;
+          product = { ...product, ...patch };
+          return HttpResponse.json(product);
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    const dialog = screen.getByRole('dialog', { name: /editar perfume x/i });
+
+    const categorySelect = within(dialog).getByLabelText(/^categoria$/i);
+    expect(categorySelect).toHaveValue('cat-1');
+
+    await user.selectOptions(categorySelect, 'cat-2');
+    await user.click(
+      within(dialog).getByRole('button', { name: /salvar produto/i }),
+    );
+
+    await waitFor(() => expect(product.categoryId).toBe('cat-2'));
+  });
+
+  it('never sends an empty-string sku/description when the product never had one — the API treats "" as a real value, not "unchanged"', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+    let product: RawProduct = rawProduct({
+      id: 'p1',
+      name: 'Perfume X',
+      sku: null,
+      description: null,
+    });
+    mockProducts([product]);
+    server.use(
+      http.patch(
+        `${API_BASE_URL}/api/v1/catalogs/catalog-1/products/p1`,
+        async ({ request }) => {
+          capturedBody = (await request.json()) as Record<string, unknown>;
+          product = { ...product, ...capturedBody };
+          return HttpResponse.json(product);
+        },
+      ),
+    );
+
+    const user = userEvent.setup();
+    renderProductList();
+
+    await user.click(
+      await screen.findByRole('button', { name: /editar perfume x/i }),
+    );
+    const dialog = screen.getByRole('dialog', { name: /editar perfume x/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: /salvar produto/i }),
+    );
+
+    await waitFor(() => expect(capturedBody).not.toBeNull());
+    expect(capturedBody).not.toHaveProperty('sku');
+    expect(capturedBody).not.toHaveProperty('description');
+  });
+
   it('does not silently restore visibility/orderability when reactivating a product', async () => {
     let product: RawProduct = {
       id: 'p1',
@@ -156,7 +282,7 @@ describe('ProductList', () => {
     );
 
     // Só marca "Ativo" — não mexe em "Visível" nem "Disponível para compra".
-    await user.click(screen.getByLabelText(/^ativo$/i));
+    await user.click(screen.getByRole('switch', { name: /^ativo$/i }));
     await user.click(screen.getByRole('button', { name: /salvar produto/i }));
 
     await waitFor(() => expect(product.isActive).toBe(true));

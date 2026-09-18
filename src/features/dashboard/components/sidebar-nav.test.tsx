@@ -4,9 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SidebarNav } from './sidebar-nav';
 
 const usePathnameMock = vi.hoisted(() => vi.fn());
+const pushMock = vi.hoisted(() => vi.fn());
 
 vi.mock('next/navigation', () => ({
   usePathname: usePathnameMock,
+  useRouter: () => ({ push: pushMock }),
 }));
 
 describe('SidebarNav', () => {

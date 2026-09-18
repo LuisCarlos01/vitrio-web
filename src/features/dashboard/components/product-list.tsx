@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useId, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
 import { FileInput } from '@/components/ui/file-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { ApiError } from '@/lib/api/errors';
 import type { Category } from '@/lib/api/adapters/category';
 import type { Product } from '@/lib/api/adapters/product';
@@ -27,6 +28,9 @@ import { useProducts } from '../hooks/use-products';
 import { useUpdateProduct } from '../hooks/use-update-product';
 import { useUploadAsset } from '../hooks/use-upload-asset';
 import { ProductPhotoViewer } from './product-photo-viewer';
+
+const selectClassName =
+  'border-input h-8 w-full rounded-lg border bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
 
 const createProductSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
@@ -62,9 +66,6 @@ function CreateProductForm({
 
   const isPending = uploadAsset.isPending || createProduct.isPending;
   const error = createProduct.error;
-
-  const selectClassName =
-    'border-input h-8 w-full rounded-lg border bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50';
 
   return (
     <form
@@ -156,6 +157,10 @@ function CreateProductForm({
 }
 
 const editProductSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  sku: z.string().optional(),
+  description: z.string().optional(),
+  categoryId: z.string().optional(),
   quantityAvailable: z.coerce.number().min(0),
   isVisible: z.boolean(),
   isOrderable: z.boolean(),
@@ -164,6 +169,44 @@ const editProductSchema = z.object({
 
 type EditProductInput = z.input<typeof editProductSchema>;
 type EditProductOutput = z.output<typeof editProductSchema>;
+
+function EditProductToggleRow({
+  id,
+  label,
+  hint,
+  control,
+  name,
+}: {
+  id: string;
+  label: string;
+  hint: string;
+  control: ReturnType<
+    typeof useForm<EditProductInput, unknown, EditProductOutput>
+  >['control'];
+  name: 'isVisible' | 'isOrderable' | 'isActive';
+}) {
+  return (
+    <div className="border-border flex items-center justify-between gap-4 rounded-lg border p-3">
+      <div className="flex flex-col gap-0.5">
+        <Label htmlFor={id} className="font-normal">
+          {label}
+        </Label>
+        <p className="text-muted-foreground text-xs">{hint}</p>
+      </div>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Switch
+            id={id}
+            checked={field.value}
+            onCheckedChange={field.onChange}
+          />
+        )}
+      />
+    </div>
+  );
+}
 
 function EditProductDialog({
   catalogId,
@@ -176,14 +219,20 @@ function EditProductDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { data: categories } = useCategories(catalogId);
   const updateProduct = useUpdateProduct();
-  const { register, handleSubmit } = useForm<
-    EditProductInput,
-    unknown,
-    EditProductOutput
-  >({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<EditProductInput, unknown, EditProductOutput>({
     resolver: zodResolver(editProductSchema),
     defaultValues: {
+      name: product.name,
+      sku: product.sku ?? '',
+      description: product.description ?? '',
+      categoryId: product.categoryId ?? '',
       quantityAvailable: product.quantityAvailable,
       isVisible: product.isVisible,
       isOrderable: product.isOrderable,
@@ -200,12 +249,81 @@ function EditProductDialog({
         <form
           onSubmit={handleSubmit((values) => {
             updateProduct.mutate(
-              { catalogId, id: product.id, payload: values },
+              {
+                catalogId,
+                id: product.id,
+                payload: {
+                  ...values,
+                  // Campo vazio nunca deve virar "" no banco — o backend trata só
+                  // `null`/omitido como "não alterar", e "" colide com outro
+                  // produto sem SKU na checagem de duplicidade (mesmo padrão do
+                  // CreateProductForm).
+                  sku: values.sku || undefined,
+                  description: values.description || undefined,
+                  // Mesma regra vale pra categoria: selecionar "Sem categoria"
+                  // aqui não remove uma categoria já atribuída (a API não tem
+                  // como distinguir "não mexer" de "limpar"), só evita mandar
+                  // um valor novo quando o produto já não tinha nenhuma.
+                  categoryId: values.categoryId || undefined,
+                },
+              },
               { onSuccess: () => onOpenChange(false) },
             );
           })}
           className="flex flex-col gap-4"
         >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`name-${product.id}`}>Nome</Label>
+            <Input
+              id={`name-${product.id}`}
+              aria-invalid={!!errors.name}
+              aria-describedby={
+                errors.name ? `name-${product.id}-error` : undefined
+              }
+              {...register('name')}
+            />
+            {errors.name && (
+              <p
+                id={`name-${product.id}-error`}
+                role="alert"
+                className="text-destructive text-sm"
+              >
+                {errors.name.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`sku-${product.id}`}>SKU</Label>
+            <Input id={`sku-${product.id}`} {...register('sku')} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`description-${product.id}`}>Descrição</Label>
+            <Input
+              id={`description-${product.id}`}
+              {...register('description')}
+            />
+          </div>
+
+          {categories && categories.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`category-${product.id}`}>Categoria</Label>
+              <select
+                id={`category-${product.id}`}
+                {...register('categoryId')}
+                className={selectClassName}
+              >
+                <option value="">Sem categoria</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`quantity-${product.id}`}>
               Quantidade disponível
@@ -218,44 +336,27 @@ function EditProductDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label
-              htmlFor={`visible-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`visible-${product.id}`}
-                type="checkbox"
-                {...register('isVisible')}
-                className="accent-primary size-4"
-              />
-              Visível
-            </Label>
-
-            <Label
-              htmlFor={`orderable-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`orderable-${product.id}`}
-                type="checkbox"
-                {...register('isOrderable')}
-                className="accent-primary size-4"
-              />
-              Disponível para compra
-            </Label>
-
-            <Label
-              htmlFor={`active-${product.id}`}
-              className="justify-start gap-2 font-normal"
-            >
-              <input
-                id={`active-${product.id}`}
-                type="checkbox"
-                {...register('isActive')}
-                className="accent-primary size-4"
-              />
-              Ativo
-            </Label>
+            <EditProductToggleRow
+              id={`visible-${product.id}`}
+              label="Visível"
+              hint="Aparece na vitrine pública."
+              control={control}
+              name="isVisible"
+            />
+            <EditProductToggleRow
+              id={`orderable-${product.id}`}
+              label="Disponível para compra"
+              hint="Cliente consegue adicionar ao carrinho."
+              control={control}
+              name="isOrderable"
+            />
+            <EditProductToggleRow
+              id={`active-${product.id}`}
+              label="Ativo"
+              hint="Desligar remove o produto de tudo, dashboard e vitrine."
+              control={control}
+              name="isActive"
+            />
           </div>
           {!product.isActive && (
             <p className="text-muted-foreground text-sm">

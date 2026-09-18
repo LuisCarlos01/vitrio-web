@@ -39,16 +39,20 @@ test('a reseller can create a product, edit its stock/visibility, and delete it'
 
   // Desativa o produto.
   await page.getByRole('button', { name: /editar perfume x/i }).click();
-  await page.getByLabel(/^ativo$/i).uncheck();
+  await page.getByRole('switch', { name: /^ativo$/i }).click();
   await page.getByRole('button', { name: /salvar produto/i }).click();
   await expect(page.getByText('Inativo')).toBeVisible();
 
   // Reativa sem tocar em visível/disponível — os dois devem continuar
   // desmarcados (regra: reativar não restaura o resto sozinho).
   await page.getByRole('button', { name: /editar perfume x/i }).click();
-  await expect(page.getByLabel(/^visível$/i)).not.toBeChecked();
-  await expect(page.getByLabel(/disponível para compra/i)).not.toBeChecked();
-  await page.getByLabel(/^ativo$/i).check();
+  await expect(
+    page.getByRole('switch', { name: /^visível$/i }),
+  ).not.toBeChecked();
+  await expect(
+    page.getByRole('switch', { name: /disponível para compra/i }),
+  ).not.toBeChecked();
+  await page.getByRole('switch', { name: /^ativo$/i }).click();
   await page.getByRole('button', { name: /salvar produto/i }).click();
   await expect(page.getByText('Oculto')).toBeVisible();
 

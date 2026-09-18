@@ -5,6 +5,12 @@ const SESSION_COOKIE = 'has-session';
 export function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.redirect(
+      new URL(hasSession ? '/dashboard' : '/login', request.url),
+    );
+  }
+
   if (!hasSession) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
@@ -14,6 +20,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/',
     '/dashboard/:path*',
     '/products/:path*',
     '/categories/:path*',

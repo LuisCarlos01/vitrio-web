@@ -45,8 +45,9 @@ export function RegisterForm() {
           onSuccess: () => router.push('/dashboard'),
         }),
       )}
+      className="flex flex-col gap-4"
     >
-      <div>
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">E-mail</Label>
         <Input
           id="email"
@@ -55,9 +56,13 @@ export function RegisterForm() {
           aria-describedby={errors.email ? 'email-error' : undefined}
           {...registerField('email')}
         />
-        {errors.email && <p id="email-error">{errors.email.message}</p>}
+        {errors.email && (
+          <p id="email-error" className="text-destructive text-sm">
+            {errors.email.message}
+          </p>
+        )}
       </div>
-      <div>
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="password">Senha</Label>
         <PasswordInput
           id="password"
@@ -66,7 +71,9 @@ export function RegisterForm() {
           {...registerField('password')}
         />
         {errors.password ? (
-          <p id="password-error">{errors.password.message}</p>
+          <p id="password-error" className="text-destructive text-sm">
+            {errors.password.message}
+          </p>
         ) : (
           <p className="text-muted-foreground text-xs">
             Mínimo de 8 caracteres
@@ -74,9 +81,15 @@ export function RegisterForm() {
         )}
       </div>
       {registerErrorMessage(registerMutation.error) && (
-        <p role="alert">{registerErrorMessage(registerMutation.error)}</p>
+        <p role="alert" className="text-destructive text-sm">
+          {registerErrorMessage(registerMutation.error)}
+        </p>
       )}
-      <Button type="submit" disabled={registerMutation.isPending}>
+      <Button
+        type="submit"
+        disabled={registerMutation.isPending}
+        className="w-full"
+      >
         Criar conta
       </Button>
     </form>

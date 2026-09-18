@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from 'cn';
+import { LogoutButton } from '@/features/auth/components/logout-button';
 import { NAV_ITEMS } from '../nav-items';
 
 export function SidebarNav() {
@@ -68,6 +69,9 @@ export function SidebarNav() {
           );
         })}
       </ul>
+      <div className="border-sidebar-border mt-auto border-t pt-1">
+        <LogoutButton collapsed={collapsed} />
+      </div>
     </nav>
   );
 }

@@ -6,6 +6,7 @@ import { CartDrawer } from './cart-drawer';
 
 const SLUG = 'loja-da-ana';
 const OTHER_SLUG = 'loja-do-bruno';
+const STORE_NAME = 'Loja da Ana';
 
 describe('CartDrawer', () => {
   beforeEach(() => {
@@ -34,7 +35,13 @@ describe('CartDrawer', () => {
       1,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
 
     expect(
       screen.getByRole('button', { name: /Ver carrinho.*3/ }),
@@ -53,7 +60,13 @@ describe('CartDrawer', () => {
       5,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
 
     expect(
       screen.getByRole('button', { name: /Ver carrinho.*0/ }),
@@ -61,7 +74,13 @@ describe('CartDrawer', () => {
   });
 
   it('does not render the panel before the trigger is clicked', () => {
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
@@ -78,7 +97,13 @@ describe('CartDrawer', () => {
       2,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -107,7 +132,13 @@ describe('CartDrawer', () => {
       1,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
     await userEvent.click(
       screen.getByRole('button', { name: 'Remover Eggeo Blossom' }),
@@ -137,7 +168,13 @@ describe('CartDrawer', () => {
       2,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
     await userEvent.click(
       screen.getByRole('button', { name: 'Aumentar quantidade' }),
@@ -147,7 +184,13 @@ describe('CartDrawer', () => {
   });
 
   it('shows an empty-cart message and no checkout link when there are no items', async () => {
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
 
     expect(screen.getByText('Seu carrinho está vazio.')).toBeInTheDocument();
@@ -168,7 +211,13 @@ describe('CartDrawer', () => {
       2,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber="+5511999999999" />);
+    render(
+      <CartDrawer
+        slug={SLUG}
+        storeName={STORE_NAME}
+        whatsappNumber="+5511999999999"
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
 
     const link = screen.getByRole('link', { name: /Finalizar no WhatsApp/ });
@@ -190,7 +239,9 @@ describe('CartDrawer', () => {
       2,
     );
 
-    render(<CartDrawer slug={SLUG} whatsappNumber={null} />);
+    render(
+      <CartDrawer slug={SLUG} storeName={STORE_NAME} whatsappNumber={null} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: /Ver carrinho/ }));
 
     expect(

@@ -51,8 +51,8 @@ test('a customer can browse the public storefront, filter by category, and build
   // aparecer na vitrine pública (regra registrada em Product.java).
   await page.getByRole('button', { name: /editar perfume x/i }).click();
   await page.getByLabel(/quantidade disponível/i).fill('5');
-  await page.getByLabel(/^visível$/i).check();
-  await page.getByLabel(/disponível para compra/i).check();
+  await page.getByRole('switch', { name: /^visível$/i }).click();
+  await page.getByRole('switch', { name: /disponível para compra/i }).click();
   await page.getByRole('button', { name: /salvar produto/i }).click();
 
   await page.goto(`/${slug}`);
